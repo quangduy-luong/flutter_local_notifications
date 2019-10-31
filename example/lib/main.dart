@@ -83,6 +83,20 @@ class _HomePageState extends State<HomePage> {
                         'Tap on a notification when it appears to trigger navigation'),
                   ),
                   PaddedRaisedButton(
+                    buttonText:
+                        'Show a snoozeable notification with default actions',
+                    onPressed: () async {
+                      await _showDefaultSnoozeNotification();
+                    },
+                  ),
+                  PaddedRaisedButton(
+                    buttonText:
+                        'Show a snoozeable notification with custom actions',
+                    onPressed: () async {
+                      await _showCustomSnoozeNotification();
+                    },
+                  ),
+                  PaddedRaisedButton(
                     buttonText: 'Show plain notification with payload',
                     onPressed: () async {
                       await _showNotification();
@@ -224,6 +238,42 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _showDefaultSnoozeNotification() async {
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'your channel id', 'your channel name', 'your channel description',
+        importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
+    var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+    var platformChannelSpecifics = NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+        0, 'plain title', 'plain body', platformChannelSpecifics,
+        payload: 'item x', category: NotificationCategory.snoozeable());
+  }
+
+  Future<void> _showCustomSnoozeNotification() async {
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'your channel id', 'your channel name', 'your channel description',
+        importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
+    var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+    var platformChannelSpecifics = NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'plain title',
+      'plain body',
+      platformChannelSpecifics,
+      payload: 'item x',
+      category: NotificationCategory.snoozeable(
+        firstActionTitle: 'Připomeň za 10 sekund',
+        secondActionTitle: 'Připomeň za 100 sekund',
+        thirdActionTitle: 'Domů',
+        firstActionDuration: 10,
+        secondActionDuration: 100,
+        thirdActionPayload: 'home',
       ),
     );
   }

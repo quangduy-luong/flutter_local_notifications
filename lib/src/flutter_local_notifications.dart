@@ -62,6 +62,49 @@ class Time {
   }
 }
 
+class NotificationCategory {
+  final String identifier;
+  final String firstActionTitle;
+  final String secondActionTitle;
+  final String thirdActionTitle;
+  final int firstActionDuration;
+  final int secondActionDuration;
+  final String thirdActionPayload;
+
+  const NotificationCategory._(
+    this.identifier,
+    this.firstActionTitle,
+    this.secondActionTitle,
+    this.thirdActionTitle,
+    this.firstActionDuration,
+    this.secondActionDuration,
+    this.thirdActionPayload,
+  );
+
+  factory NotificationCategory.noAction() {
+    return NotificationCategory._('no_actions', '', '', '', 0, 0, '');
+  }
+
+  factory NotificationCategory.snoozeable({
+    String firstActionTitle = 'Snooze 30s',
+    String secondActionTitle = 'Snooze 5min',
+    String thirdActionTitle = 'Don\'t show again',
+    int firstActionDuration = 30,
+    int secondActionDuration = 300,
+    String thirdActionPayload = '/settings',
+  }) {
+    return NotificationCategory._(
+      'snoozeable',
+      firstActionTitle,
+      secondActionTitle,
+      thirdActionTitle,
+      firstActionDuration,
+      secondActionDuration,
+      thirdActionPayload,
+    );
+  }
+}
+
 class FlutterLocalNotificationsPlugin {
   factory FlutterLocalNotificationsPlugin() => _instance;
 
@@ -113,8 +156,9 @@ class FlutterLocalNotificationsPlugin {
   /// Show a notification with an optional payload that will be passed back to the app when a notification is tapped
   Future<void> show(int id, String title, String body,
       NotificationDetails notificationDetails,
-      {String payload}) async {
+      {String payload, NotificationCategory category}) async {
     _validateId(id);
+    if (category == null) category = NotificationCategory.noAction();
     var serializedPlatformSpecifics =
         _retrievePlatformSpecificNotificationDetails(notificationDetails);
     await _channel.invokeMethod('show', <String, dynamic>{
@@ -122,7 +166,14 @@ class FlutterLocalNotificationsPlugin {
       'title': title,
       'body': body,
       'platformSpecifics': serializedPlatformSpecifics,
-      'payload': payload ?? ''
+      'payload': payload ?? '',
+      'category': category.identifier,
+      'firstActionTitle': category.firstActionTitle,
+      'secondActionTitle': category.secondActionTitle,
+      'thirdActionTitle': category.thirdActionTitle,
+      'firstActionDuration': category.firstActionDuration,
+      'secondActionDuration': category.secondActionDuration,
+      'thirdActionPayload': category.thirdActionPayload,
     });
   }
 
@@ -140,10 +191,18 @@ class FlutterLocalNotificationsPlugin {
   /// Schedules a notification to be shown at the specified time with an optional payload that is passed through when a notification is tapped
   /// The [androidAllowWhileIdle] parameter is Android-specific and determines if the notification should still be shown at the specified time
   /// even when in a low-power idle mode.
-  Future<void> schedule(int id, String title, String body,
-      DateTime scheduledDate, NotificationDetails notificationDetails,
-      {String payload, bool androidAllowWhileIdle = false}) async {
+  Future<void> schedule(
+    int id,
+    String title,
+    String body,
+    DateTime scheduledDate,
+    NotificationDetails notificationDetails, {
+    String payload,
+    bool androidAllowWhileIdle = false,
+    NotificationCategory category,
+  }) async {
     _validateId(id);
+    if (category == null) category = NotificationCategory.noAction();
     var serializedPlatformSpecifics =
         _retrievePlatformSpecificNotificationDetails(notificationDetails);
     if (_platform.isAndroid) {
@@ -155,7 +214,14 @@ class FlutterLocalNotificationsPlugin {
       'body': body,
       'millisecondsSinceEpoch': scheduledDate.millisecondsSinceEpoch,
       'platformSpecifics': serializedPlatformSpecifics,
-      'payload': payload ?? ''
+      'payload': payload ?? '',
+      'category': category.identifier,
+      'firstActionTitle': category.firstActionTitle,
+      'secondActionTitle': category.secondActionTitle,
+      'thirdActionTitle': category.thirdActionTitle,
+      'firstActionDuration': category.firstActionDuration,
+      'secondActionDuration': category.secondActionDuration,
+      'thirdActionPayload': category.thirdActionPayload,
     });
   }
 
@@ -163,8 +229,9 @@ class FlutterLocalNotificationsPlugin {
   /// For example, specifying a hourly interval means the first time the notification will be an hour after the method has been called and then every hour after that.
   Future<void> periodicallyShow(int id, String title, String body,
       RepeatInterval repeatInterval, NotificationDetails notificationDetails,
-      {String payload}) async {
+      {String payload, NotificationCategory category}) async {
     _validateId(id);
+    if (category == null) category = NotificationCategory.noAction();
     var serializedPlatformSpecifics =
         _retrievePlatformSpecificNotificationDetails(notificationDetails);
     await _channel.invokeMethod('periodicallyShow', <String, dynamic>{
@@ -174,15 +241,23 @@ class FlutterLocalNotificationsPlugin {
       'calledAt': DateTime.now().millisecondsSinceEpoch,
       'repeatInterval': repeatInterval.index,
       'platformSpecifics': serializedPlatformSpecifics,
-      'payload': payload ?? ''
+      'payload': payload ?? '',
+      'category': category.identifier,
+      'firstActionTitle': category.firstActionTitle,
+      'secondActionTitle': category.secondActionTitle,
+      'thirdActionTitle': category.thirdActionTitle,
+      'firstActionDuration': category.firstActionDuration,
+      'secondActionDuration': category.secondActionDuration,
+      'thirdActionPayload': category.thirdActionPayload,
     });
   }
 
   /// Shows a notification on a daily interval at the specified time
   Future<void> showDailyAtTime(int id, String title, String body,
       Time notificationTime, NotificationDetails notificationDetails,
-      {String payload}) async {
+      {String payload, NotificationCategory category}) async {
     _validateId(id);
+    if (category == null) category = NotificationCategory.noAction();
     var serializedPlatformSpecifics =
         _retrievePlatformSpecificNotificationDetails(notificationDetails);
     await _channel.invokeMethod('showDailyAtTime', <String, dynamic>{
@@ -193,15 +268,23 @@ class FlutterLocalNotificationsPlugin {
       'repeatInterval': RepeatInterval.Daily.index,
       'repeatTime': notificationTime.toMap(),
       'platformSpecifics': serializedPlatformSpecifics,
-      'payload': payload ?? ''
+      'payload': payload ?? '',
+      'category': category.identifier,
+      'firstActionTitle': category.firstActionTitle,
+      'secondActionTitle': category.secondActionTitle,
+      'thirdActionTitle': category.thirdActionTitle,
+      'firstActionDuration': category.firstActionDuration,
+      'secondActionDuration': category.secondActionDuration,
+      'thirdActionPayload': category.thirdActionPayload,
     });
   }
 
   /// Shows a notification on a daily interval at the specified time
   Future<void> showWeeklyAtDayAndTime(int id, String title, String body,
       Day day, Time notificationTime, NotificationDetails notificationDetails,
-      {String payload}) async {
+      {String payload, NotificationCategory category}) async {
     _validateId(id);
+    if (category == null) category = NotificationCategory.noAction();
     var serializedPlatformSpecifics =
         _retrievePlatformSpecificNotificationDetails(notificationDetails);
     await _channel.invokeMethod('showWeeklyAtDayAndTime', <String, dynamic>{
@@ -213,7 +296,14 @@ class FlutterLocalNotificationsPlugin {
       'repeatTime': notificationTime.toMap(),
       'day': day.value,
       'platformSpecifics': serializedPlatformSpecifics,
-      'payload': payload ?? ''
+      'payload': payload ?? '',
+      'category': category.identifier,
+      'firstActionTitle': category.firstActionTitle,
+      'secondActionTitle': category.secondActionTitle,
+      'thirdActionTitle': category.thirdActionTitle,
+      'firstActionDuration': category.firstActionDuration,
+      'secondActionDuration': category.secondActionDuration,
+      'thirdActionPayload': category.thirdActionPayload,
     });
   }
 

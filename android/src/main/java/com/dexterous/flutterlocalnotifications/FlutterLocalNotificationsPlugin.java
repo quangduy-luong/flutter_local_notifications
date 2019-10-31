@@ -86,6 +86,8 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
     private static final String NOTIFICATION_LAUNCHED_APP = "notificationLaunchedApp";
     private static final String INVALID_DRAWABLE_RESOURCE_ERROR_MESSAGE = "The resource %s could not be found. Please make sure it has been added as a drawable resource to your Android head project.";
     private static final String INVALID_RAW_RESOURCE_ERROR_MESSAGE = "The resource %s could not be found. Please make sure it has been added as a raw resource to your Android head project.";
+    public static String TURN_OFF = "turnOff";
+    public static String SNOOZE = "snooze";
     public static String NOTIFICATION_ID = "notification_id";
     public static String NOTIFICATION = "notification";
     public static String NOTIFICATION_DETAILS = "notificationDetails";
@@ -142,6 +144,43 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
         setLights(notificationDetails, builder);
         setStyle(context, notificationDetails, builder);
         setProgress(notificationDetails, builder);
+
+        if (notificationDetails.category.equals(NotificationDetails.NO_ACTIONS_CATEGORY)) {
+            return builder.build();
+        }
+
+        if (notificationDetails.category.equals(NotificationDetails.SNOOZEABLE_CATEGORY)) {
+            Gson gson = buildGson();
+            String notificationDetailsJson = gson.toJson(notificationDetails);
+
+            // Snooze by 30s button
+            Intent snoozeIntentOne = new Intent(context, SnoozeIntentService.class);
+            snoozeIntentOne.setAction(SNOOZE);
+            snoozeIntentOne.putExtra(NOTIFICATION_DETAILS, notificationDetailsJson);
+            snoozeIntentOne.putExtra(SNOOZE, Long.valueOf(notificationDetails.firstActionDuration * 1000L));
+            PendingIntent pendingSnoozeIntentOne = PendingIntent.getService(context, -notificationDetails.id, snoozeIntentOne, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            builder.addAction(0, notificationDetails.firstActionTitle, pendingSnoozeIntentOne);
+
+            // Snooze by 5min button
+            Intent snoozeIntentTwo = new Intent(context, SnoozeIntentService.class);
+            snoozeIntentTwo.setAction(SNOOZE);
+            snoozeIntentTwo.putExtra(NOTIFICATION_DETAILS, notificationDetailsJson);
+            snoozeIntentTwo.putExtra(SNOOZE, Long.valueOf(notificationDetails.secondActionDuration * 1000L));
+            PendingIntent pendingSnoozeIntentTwo = PendingIntent.getService(context, -notificationDetails.id - 10000, snoozeIntentTwo, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            builder.addAction(0, notificationDetails.secondActionTitle, pendingSnoozeIntentTwo);
+
+            // Don't show again button
+            Intent turnOffIntent = new Intent(context, getMainActivityClass(context));
+            turnOffIntent.setAction(TURN_OFF);
+            turnOffIntent.putExtra(PAYLOAD, notificationDetails.thirdActionPayload);
+            turnOffIntent.putExtra(NOTIFICATION_ID, notificationDetails.id);
+            PendingIntent pendingTurnOffIntent = PendingIntent.getActivity(context, -notificationDetails.id - 20000, turnOffIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            builder.addAction(0, notificationDetails.thirdActionTitle, pendingTurnOffIntent);
+        }
+
         return builder.build();
     }
 
@@ -821,6 +860,11 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
 
     private Boolean sendNotificationPayloadMessage(Intent intent) {
         if (SELECT_NOTIFICATION.equals(intent.getAction())) {
+            String payload = intent.getStringExtra(PAYLOAD);
+            channel.invokeMethod("selectNotification", payload);
+            return true;
+        } else if (TURN_OFF.equals(intent.getAction())) {
+            cancelNotification(intent.getIntExtra(NOTIFICATION_ID, -1));
             String payload = intent.getStringExtra(PAYLOAD);
             channel.invokeMethod("selectNotification", payload);
             return true;
