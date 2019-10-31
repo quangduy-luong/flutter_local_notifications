@@ -198,6 +198,12 @@ class FlutterLocalNotificationsPlugin {
       'platformSpecifics': serializedPlatformSpecifics,
       'payload': payload ?? '',
       'category': category.identifier,
+      'firstActionTitle': category.firstActionTitle,
+      'secondActionTitle': category.secondActionTitle,
+      'thirdActionTitle': category.thirdActionTitle,
+      'firstActionDuration': category.firstActionDuration,
+      'secondActionDuration': category.secondActionDuration,
+      'thirdActionPayload': category.thirdActionPayload,
     });
   }
 
@@ -242,6 +248,12 @@ class FlutterLocalNotificationsPlugin {
       'platformSpecifics': serializedPlatformSpecifics,
       'payload': payload ?? '',
       'category': category.identifier,
+      'firstActionTitle': category.firstActionTitle,
+      'secondActionTitle': category.secondActionTitle,
+      'thirdActionTitle': category.thirdActionTitle,
+      'firstActionDuration': category.firstActionDuration,
+      'secondActionDuration': category.secondActionDuration,
+      'thirdActionPayload': category.thirdActionPayload,
     });
   }
 
@@ -265,6 +277,12 @@ class FlutterLocalNotificationsPlugin {
       'platformSpecifics': serializedPlatformSpecifics,
       'payload': payload ?? '',
       'category': category.identifier,
+      'firstActionTitle': category.firstActionTitle,
+      'secondActionTitle': category.secondActionTitle,
+      'thirdActionTitle': category.thirdActionTitle,
+      'firstActionDuration': category.firstActionDuration,
+      'secondActionDuration': category.secondActionDuration,
+      'thirdActionPayload': category.thirdActionPayload,
     });
   }
 
@@ -288,6 +306,12 @@ class FlutterLocalNotificationsPlugin {
       'platformSpecifics': serializedPlatformSpecifics,
       'payload': payload ?? '',
       'category': category.identifier,
+      'firstActionTitle': category.firstActionTitle,
+      'secondActionTitle': category.secondActionTitle,
+      'thirdActionTitle': category.thirdActionTitle,
+      'firstActionDuration': category.firstActionDuration,
+      'secondActionDuration': category.secondActionDuration,
+      'thirdActionPayload': category.thirdActionPayload,
     });
   }
 
@@ -312,6 +336,12 @@ class FlutterLocalNotificationsPlugin {
       'platformSpecifics': serializedPlatformSpecifics,
       'payload': payload ?? '',
       'category': category.identifier,
+      'firstActionTitle': category.firstActionTitle,
+      'secondActionTitle': category.secondActionTitle,
+      'thirdActionTitle': category.thirdActionTitle,
+      'firstActionDuration': category.firstActionDuration,
+      'secondActionDuration': category.secondActionDuration,
+      'thirdActionPayload': category.thirdActionPayload,
     });
   }
 

@@ -14,4 +14,11 @@
 @property(nonatomic, strong) NSNumber *repeatInterval;
 @property(nonatomic, strong) NotificationTime *repeatTime;
 @property(nonatomic, strong) NSNumber *day;
+@property(nonatomic, strong) NSString *categoryIdentifier;
+@property(nonatomic, strong) NSString *firstActionTitle;
+@property(nonatomic, strong) NSString *secondActionTitle;
+@property(nonatomic, strong) NSString *thirdActionTitle;
+@property(nonatomic, strong) NSNumber *firstActionDuration;
+@property(nonatomic, strong) NSNumber *secondActionDuration;
+@property(nonatomic, strong) NSString *thirdActionPayload;
 @end

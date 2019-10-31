@@ -1,7 +1,7 @@
 #import "FlutterLocalNotificationsPlugin.h"
 #import "NotificationTime.h"
 #import "NotificationDetails.h"
-
+#import "NSArrayMap.h"
 
 
 @implementation FlutterLocalNotificationsPlugin{
@@ -57,6 +57,15 @@ NSString *const REPEAT_TIME = @"repeatTime";
 NSString *const HOUR = @"hour";
 NSString *const MINUTE = @"minute";
 NSString *const SECOND = @"second";
+NSString *const CATEGORIES = @"categories";
+NSString *const CATEGORY_IDENTIFIER = @"category";
+NSString *const NO_ACTIONS_CATEGORY = @"no_actions";
+NSString *const FIRST_ACTION_TITLE = @"firstActionTitle";
+NSString *const SECOND_ACTION_TITLE = @"secondActionTitle";
+NSString *const THIRD_ACTION_TITLE = @"thirdActionTitle";
+NSString *const FIRST_ACTION_DURATION = @"firstActionDuration";
+NSString *const SECOND_ACTION_DURATION = @"secondActionDuration";
+NSString *const THIRD_ACTION_PAYLOAD = @"thirdActionPayload";
 
 NSString *const NOTIFICATION_ID = @"NotificationId";
 NSString *const PAYLOAD = @"payload";
@@ -176,6 +185,12 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
         if (requestedBadgePermission) {
             authorizationOptions += UNAuthorizationOptionBadge;
         }
+        if (arguments[CATEGORIES] != [NSNull null]) {
+            NSArray<UNNotificationCategory *> *categories = [arguments[CATEGORIES] map:^id(id categoryDict) {
+                return buildUNNotificationCategory(categoryDict);
+            }];
+            [center setNotificationCategories:[NSSet setWithArray:categories]];
+        }
         [center requestAuthorizationWithOptions:(authorizationOptions) completionHandler:^(BOOL granted, NSError * _Nullable error) {
             if(self->launchPayload != nil) {
                 [self handleSelectNotification:self->launchPayload];
@@ -204,6 +219,30 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
     initialized = true;
 }
 
+static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categoryDict) NS_AVAILABLE_IOS(10.0) {
+    if ([NO_ACTIONS_CATEGORY isEqualToString:categoryDict[CATEGORY_IDENTIFIER] ]) {
+        return [UNNotificationCategory categoryWithIdentifier:NO_ACTIONS_CATEGORY actions:@[] intentIdentifiers:@[] options:UNNotificationCategoryOptionNone];
+    }
+    
+    UNNotificationAction* firstAction = [UNNotificationAction
+    actionWithIdentifier:FIRST_ACTION_TITLE
+    title:categoryDict[FIRST_ACTION_TITLE]
+    options:UNNotificationActionOptionNone];
+    
+    UNNotificationAction* secondAction = [UNNotificationAction
+    actionWithIdentifier:SECOND_ACTION_TITLE
+    title:categoryDict[SECOND_ACTION_TITLE]
+    options:UNNotificationActionOptionNone];
+    
+    UNNotificationAction* thirdAction = [UNNotificationAction
+    actionWithIdentifier:THIRD_ACTION_TITLE
+    title:categoryDict[THIRD_ACTION_TITLE]
+    options:UNNotificationActionOptionNone];
+    
+    return [UNNotificationCategory categoryWithIdentifier:categoryDict[CATEGORY_IDENTIFIER]
+            actions:@[firstAction, secondAction, thirdAction] intentIdentifiers:@[] options:UNNotificationCategoryOptionNone];
+}
+
 - (void)showNotification:(FlutterMethodCall * _Nonnull)call result:(FlutterResult _Nonnull)result {
     NotificationDetails *notificationDetails = [[NotificationDetails alloc]init];
     notificationDetails.id = call.arguments[ID];
@@ -217,6 +256,14 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
     notificationDetails.presentAlert = displayAlert;
     notificationDetails.presentSound = playSound;
     notificationDetails.presentBadge = updateBadge;
+    notificationDetails.categoryIdentifier = call.arguments[CATEGORY_IDENTIFIER];
+    notificationDetails.firstActionTitle = call.arguments[FIRST_ACTION_TITLE];
+    notificationDetails.secondActionTitle = call.arguments[SECOND_ACTION_TITLE];
+    notificationDetails.thirdActionTitle = call.arguments[THIRD_ACTION_TITLE];
+    notificationDetails.firstActionDuration = call.arguments[FIRST_ACTION_DURATION];
+    notificationDetails.secondActionDuration = call.arguments[SECOND_ACTION_DURATION];
+    notificationDetails.thirdActionPayload = call.arguments[THIRD_ACTION_PAYLOAD];
+    
     if(call.arguments[PLATFORM_SPECIFICS] != [NSNull null]) {
         NSDictionary *platformSpecifics = call.arguments[PLATFORM_SPECIFICS];
         
@@ -321,8 +368,8 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
     }
 }
 
-- (NSDictionary*)buildUserDict:(NSNumber *)id title:(NSString *)title presentAlert:(bool)presentAlert presentSound:(bool)presentSound presentBadge:(bool)presentBadge payload:(NSString *)payload {
-    NSDictionary *userDict =[NSDictionary dictionaryWithObjectsAndKeys:id, NOTIFICATION_ID, title, TITLE, [NSNumber numberWithBool:presentAlert], PRESENT_ALERT, [NSNumber numberWithBool:presentSound], PRESENT_SOUND, [NSNumber numberWithBool:presentBadge], PRESENT_BADGE, payload, PAYLOAD, nil];
+- (NSDictionary*)buildUserDict:(NSNumber *)id title:(NSString *)title presentAlert:(bool)presentAlert presentSound:(bool)presentSound presentBadge:(bool)presentBadge payload:(NSString *)payload firstActionTitle:(NSString *)firstActionTitle secondActionTitle:(NSString *)secondActionTitle thirdActionTitle:(NSString*)thirdActionTitle firstActionDuration:(NSNumber *)firstActionDuration secondActionDuration:(NSNumber*)secondActionDuration thirdActionPayload:(NSString*)thirdActionPayload {
+    NSDictionary *userDict =[NSDictionary dictionaryWithObjectsAndKeys:id, NOTIFICATION_ID, title, TITLE, [NSNumber numberWithBool:presentAlert], PRESENT_ALERT, [NSNumber numberWithBool:presentSound], PRESENT_SOUND, [NSNumber numberWithBool:presentBadge], PRESENT_BADGE, payload, PAYLOAD, firstActionTitle, FIRST_ACTION_TITLE, secondActionTitle, SECOND_ACTION_TITLE, thirdActionTitle,THIRD_ACTION_TITLE, firstActionDuration, FIRST_ACTION_DURATION, secondActionDuration, SECOND_ACTION_DURATION, thirdActionPayload, THIRD_ACTION_PAYLOAD, nil];
     return userDict;
 }
 
@@ -331,6 +378,7 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
     UNNotificationTrigger *trigger;
     content.title = notificationDetails.title;
     content.body = notificationDetails.body;
+    content.categoryIdentifier = notificationDetails.categoryIdentifier;
     if(notificationDetails.presentSound) {
         if(!notificationDetails.sound || [notificationDetails.sound isKindOfClass:[NSNull class]]) {
             content.sound = UNNotificationSound.defaultSound;
@@ -338,7 +386,7 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
             content.sound = [UNNotificationSound soundNamed:notificationDetails.sound];
         }
     }
-    content.userInfo = [self buildUserDict:notificationDetails.id title:notificationDetails.title presentAlert:notificationDetails.presentAlert presentSound:notificationDetails.presentSound presentBadge:notificationDetails.presentBadge payload:notificationDetails.payload];
+    content.userInfo = [self buildUserDict:notificationDetails.id title:notificationDetails.title presentAlert:notificationDetails.presentAlert presentSound:notificationDetails.presentSound presentBadge:notificationDetails.presentBadge payload:notificationDetails.payload firstActionTitle:notificationDetails.firstActionTitle secondActionTitle:notificationDetails.secondActionTitle thirdActionTitle:notificationDetails.thirdActionTitle firstActionDuration:notificationDetails.firstActionDuration secondActionDuration:notificationDetails.secondActionDuration thirdActionPayload:notificationDetails.thirdActionPayload];
     if(notificationDetails.secondsSinceEpoch == nil) {
         NSTimeInterval timeInterval = 0.1;
         Boolean repeats = NO;
@@ -411,7 +459,7 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
         }
     }
     
-    notification.userInfo = [self buildUserDict:notificationDetails.id title:notificationDetails.title presentAlert:notificationDetails.presentAlert presentSound:notificationDetails.presentSound presentBadge:notificationDetails.presentBadge payload:notificationDetails.payload];
+    notification.userInfo = [self buildUserDict:notificationDetails.id title:notificationDetails.title presentAlert:notificationDetails.presentAlert presentSound:notificationDetails.presentSound presentBadge:notificationDetails.presentBadge payload:notificationDetails.payload firstActionTitle:notificationDetails.firstActionTitle secondActionTitle:notificationDetails.secondActionTitle thirdActionTitle:notificationDetails.thirdActionTitle firstActionDuration:notificationDetails.firstActionDuration secondActionDuration:notificationDetails.secondActionDuration thirdActionPayload:notificationDetails.thirdActionPayload];
     if(notificationDetails.secondsSinceEpoch == nil) {
         if(notificationDetails.repeatInterval != nil) {
             NSTimeInterval timeInterval = 0;
@@ -492,6 +540,44 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
          withCompletionHandler:(void (^)(void))completionHandler NS_AVAILABLE_IOS(10.0) {
     if ([response.actionIdentifier isEqualToString:UNNotificationDefaultActionIdentifier]) {
         NSString *payload = (NSString *) response.notification.request.content.userInfo[PAYLOAD];
+        if(initialized) {
+            [self handleSelectNotification:payload];
+        } else {
+            launchPayload = payload;
+            launchingAppFromNotification = true;
+        }
+    } else if([response.actionIdentifier isEqualToString:FIRST_ACTION_TITLE]) {
+        NSNumber *duration = (NSNumber *)response.notification.request.content.userInfo[FIRST_ACTION_DURATION];
+        if (duration == nil) {
+            return;
+        }
+        UNTimeIntervalNotificationTrigger *trigger = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:[duration doubleValue]
+        repeats:NO];
+        UNNotificationContent *content = response.notification.request.content;
+        UNNotificationRequest* notificationRequest = [UNNotificationRequest requestWithIdentifier:response.notification.request.identifier content:content trigger:trigger];
+        UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+        [center addNotificationRequest:notificationRequest withCompletionHandler:^(NSError * _Nullable error) {
+            if (error != nil) {
+                NSLog(@"Unable to Add Notification Request");
+            }
+        }];
+    } else if([response.actionIdentifier isEqualToString:SECOND_ACTION_TITLE]) {
+        NSNumber *duration = (NSNumber *)response.notification.request.content.userInfo[SECOND_ACTION_DURATION];
+        if (duration == nil) {
+            return;
+        }
+        UNTimeIntervalNotificationTrigger *trigger = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:[duration doubleValue]
+        repeats:NO];
+        UNNotificationContent *content = response.notification.request.content;
+        UNNotificationRequest* notificationRequest = [UNNotificationRequest requestWithIdentifier:response.notification.request.identifier content:content trigger:trigger];
+        UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+        [center addNotificationRequest:notificationRequest withCompletionHandler:^(NSError * _Nullable error) {
+            if (error != nil) {
+                NSLog(@"Unable to Add Notification Request");
+            }
+        }];
+    } else if([response.actionIdentifier isEqualToString:THIRD_ACTION_TITLE]) {
+        NSString *payload = (NSString *) response.notification.request.content.userInfo[THIRD_ACTION_PAYLOAD];
         if(initialized) {
             [self handleSelectNotification:payload];
         } else {
