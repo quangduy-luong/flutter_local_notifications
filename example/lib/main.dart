@@ -59,8 +59,22 @@ class _HomePageState extends State<HomePage> {
         onDidReceiveLocalNotification: onDidReceiveLocalNotification);
     var initializationSettings = InitializationSettings(
         initializationSettingsAndroid, initializationSettingsIOS);
-    flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: onSelectNotification);
+    flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onSelectNotification: onSelectNotification,
+      categories: [
+        NotificationCategory.snoozeable(),
+        NotificationCategory.snoozeable(
+          identifier: 'snoozeable_custom',
+          firstActionTitle: '10s',
+          secondActionTitle: '100s',
+          thirdActionTitle: 'Home',
+          firstActionDuration: 10,
+          secondActionDuration: 100,
+          thirdActionPayload: 'home',
+        )
+      ],
+    );
   }
 
   @override
@@ -84,16 +98,15 @@ class _HomePageState extends State<HomePage> {
                   ),
                   PaddedRaisedButton(
                     buttonText:
-                        'Show a snoozeable notification with default actions',
+                        'Show a custom snoozeable notification with actions',
                     onPressed: () async {
-                      await _showDefaultSnoozeNotification();
+                      await _showCustomSnoozeNotification();
                     },
                   ),
                   PaddedRaisedButton(
-                    buttonText:
-                        'Show a snoozeable notification with custom actions',
+                    buttonText: 'Show a snoozeable notification with actions',
                     onPressed: () async {
-                      await _showCustomSnoozeNotification();
+                      await _showDefaultSnoozeNotification();
                     },
                   ),
                   PaddedRaisedButton(
@@ -251,7 +264,7 @@ class _HomePageState extends State<HomePage> {
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.show(
         0, 'plain title', 'plain body', platformChannelSpecifics,
-        payload: 'item x', category: NotificationCategory.snoozeable());
+        payload: 'item x', categoryIdentifier: 'snoozeable');
   }
 
   Future<void> _showCustomSnoozeNotification() async {
@@ -267,14 +280,7 @@ class _HomePageState extends State<HomePage> {
       'plain body',
       platformChannelSpecifics,
       payload: 'item x',
-      category: NotificationCategory.snoozeable(
-        firstActionTitle: 'Připomeň za 10 sekund',
-        secondActionTitle: 'Připomeň za 100 sekund',
-        thirdActionTitle: 'Domů',
-        firstActionDuration: 10,
-        secondActionDuration: 100,
-        thirdActionPayload: 'home',
-      ),
+      categoryIdentifier: 'snoozeable_custom',
     );
   }
 

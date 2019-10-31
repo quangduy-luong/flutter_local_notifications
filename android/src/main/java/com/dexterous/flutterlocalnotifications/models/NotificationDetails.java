@@ -88,12 +88,12 @@ public class NotificationDetails {
     private static final String LED_COLOR_GREEN = "ledColorGreen";
     private static final String LED_COLOR_BLUE = "ledColorBlue";
     private static final String CATEGORY = "category";
-    private static final String FIRST_ACTION_TITLE = "firstActionTitle";
-    private static final String SECOND_ACTION_TITLE = "secondActionTitle";
-    private static final String THIRD_ACTION_TITLE = "thirdActionTitle";
-    private static final String FIRST_ACTION_DURATION = "firstActionDuration";
-    private static final String SECOND_ACTION_DURATION = "secondActionDuration";
-    private static final String THIRD_ACTION_PAYLOAD = "thirdActionPayload";
+    public static final String FIRST_ACTION_TITLE = "firstActionTitle";
+    public static final String SECOND_ACTION_TITLE = "secondActionTitle";
+    public static final String THIRD_ACTION_TITLE = "thirdActionTitle";
+    public static final String FIRST_ACTION_DURATION = "firstActionDuration";
+    public static final String SECOND_ACTION_DURATION = "secondActionDuration";
+    public static final String THIRD_ACTION_PAYLOAD = "thirdActionPayload";
 
     private static final String LED_ON_MS = "ledOnMs";
     private static final String LED_OFF_MS = "ledOffMs";
@@ -105,9 +105,6 @@ public class NotificationDetails {
 
     public static final String TICKER = "ticker";
     public static final String ALLOW_WHILE_IDLE = "allowWhileIdle";
-
-    public static final String SNOOZEABLE_CATEGORY = "snoozeable";
-    public static final String NO_ACTIONS_CATEGORY = "no_actions";
 
     public Integer id;
     public String title;

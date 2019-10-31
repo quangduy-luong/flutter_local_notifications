@@ -86,14 +86,17 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
     private static final String NOTIFICATION_LAUNCHED_APP = "notificationLaunchedApp";
     private static final String INVALID_DRAWABLE_RESOURCE_ERROR_MESSAGE = "The resource %s could not be found. Please make sure it has been added as a drawable resource to your Android head project.";
     private static final String INVALID_RAW_RESOURCE_ERROR_MESSAGE = "The resource %s could not be found. Please make sure it has been added as a raw resource to your Android head project.";
+    private static final String CATEGORY_IDENTIFIER = "category";
     public static String TURN_OFF = "turnOff";
     public static String SNOOZE = "snooze";
+    public static String CATEGORIES = "categories";
     public static String NOTIFICATION_ID = "notification_id";
     public static String NOTIFICATION = "notification";
     public static String NOTIFICATION_DETAILS = "notificationDetails";
     public static String REPEAT = "repeat";
     private final Registrar registrar;
     private MethodChannel channel;
+    private static ArrayList<HashMap<String, Object>> categories = new ArrayList<HashMap<String, Object>>();
 
     private FlutterLocalNotificationsPlugin(Registrar registrar) {
         this.registrar = registrar;
@@ -145,11 +148,23 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
         setStyle(context, notificationDetails, builder);
         setProgress(notificationDetails, builder);
 
-        if (notificationDetails.category.equals(NotificationDetails.NO_ACTIONS_CATEGORY)) {
-            return builder.build();
+        HashMap category = new HashMap();
+        for (int i = 0; i < categories.size(); i++) {
+            if (categories.get(i).get(CATEGORY_IDENTIFIER).equals(notificationDetails.category)) {
+                category = categories.get(i);
+                break;
+            }
         }
 
-        if (notificationDetails.category.equals(NotificationDetails.SNOOZEABLE_CATEGORY)) {
+        if (!notificationDetails.category.equals("no_actions")) {
+            if (notificationDetails.firstActionTitle == null) {
+                notificationDetails.firstActionTitle = (String) category.get(NotificationDetails.FIRST_ACTION_TITLE);
+                notificationDetails.secondActionTitle = (String) category.get(NotificationDetails.SECOND_ACTION_TITLE);
+                notificationDetails.thirdActionTitle = (String) category.get(NotificationDetails.THIRD_ACTION_TITLE);
+                notificationDetails.firstActionDuration = (Integer) category.get(NotificationDetails.FIRST_ACTION_DURATION);
+                notificationDetails.secondActionDuration = (Integer) category.get(NotificationDetails.SECOND_ACTION_DURATION);
+                notificationDetails.thirdActionPayload = (String) category.get(NotificationDetails.THIRD_ACTION_PAYLOAD);
+            }
             Gson gson = buildGson();
             String notificationDetailsJson = gson.toJson(notificationDetails);
 
@@ -744,9 +759,14 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
         result.success(notificationAppLaunchDetails);
     }
 
+    @SuppressWarnings("unchecked")
     private void initialize(MethodCall call, Result result) {
         Map<String, Object> arguments = call.arguments();
         String defaultIcon = (String) arguments.get(DEFAULT_ICON);
+        ArrayList<HashMap<String, Object>> cat = (ArrayList<HashMap<String, Object>>) arguments.get(CATEGORIES);
+        if (cat != null) {
+            categories = cat;
+        }
         if (!isValidDrawableResource(registrar.context(), defaultIcon, result, INVALID_ICON_ERROR_CODE)) {
             return;
         }
