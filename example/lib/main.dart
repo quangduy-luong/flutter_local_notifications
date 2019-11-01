@@ -66,12 +66,12 @@ class _HomePageState extends State<HomePage> {
         NotificationCategory.snoozeable(),
         NotificationCategory.snoozeable(
           identifier: 'snoozeable_custom',
-          firstActionTitle: '10s',
-          secondActionTitle: '100s',
-          thirdActionTitle: 'Home',
-          firstActionDuration: 10,
-          secondActionDuration: 100,
-          thirdActionPayload: 'home',
+          firstActionTitle: '',
+          firstActionPayload: '',
+          secondActionTitle: 'Snooze 10s',
+          secondActionPayload: '10',
+          thirdActionTitle: 'Snooze 20s',
+          thirdActionPayload: '20',
         )
       ],
     );

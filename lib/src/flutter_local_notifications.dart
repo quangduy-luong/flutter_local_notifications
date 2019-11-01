@@ -68,8 +68,8 @@ class NotificationCategory {
   final String firstActionTitle;
   final String secondActionTitle;
   final String thirdActionTitle;
-  final int firstActionDuration;
-  final int secondActionDuration;
+  final String firstActionPayload;
+  final String secondActionPayload;
   final String thirdActionPayload;
 
   const NotificationCategory._(
@@ -78,8 +78,8 @@ class NotificationCategory {
     this.firstActionTitle,
     this.secondActionTitle,
     this.thirdActionTitle,
-    this.firstActionDuration,
-    this.secondActionDuration,
+    this.firstActionPayload,
+    this.secondActionPayload,
     this.thirdActionPayload,
   );
 
@@ -90,15 +90,15 @@ class NotificationCategory {
       'firstActionTitle': firstActionTitle,
       'secondActionTitle': secondActionTitle,
       'thirdActionTitle': thirdActionTitle,
-      'firstActionDuration': firstActionDuration,
-      'secondActionDuration': secondActionDuration,
+      'firstActionPayload': firstActionPayload,
+      'secondActionPayload': secondActionPayload,
       'thirdActionPayload': thirdActionPayload
     };
   }
 
   factory NotificationCategory._noAction() {
     return NotificationCategory._(
-        'no_actions', 'Default', '', '', '', 0, 0, '');
+        'no_actions', 'Default', '', '', '', '', '', '');
   }
 
   factory NotificationCategory.snoozeable({
@@ -107,8 +107,8 @@ class NotificationCategory {
     String firstActionTitle = 'Snooze 30s',
     String secondActionTitle = 'Snooze 5min',
     String thirdActionTitle = 'Don\'t show again',
-    int firstActionDuration = 30,
-    int secondActionDuration = 300,
+    String firstActionPayload = '30',
+    String secondActionPayload = '300',
     String thirdActionPayload = '/settings',
   }) {
     return NotificationCategory._(
@@ -117,8 +117,8 @@ class NotificationCategory {
       firstActionTitle,
       secondActionTitle,
       thirdActionTitle,
-      firstActionDuration,
-      secondActionDuration,
+      firstActionPayload,
+      secondActionPayload,
       thirdActionPayload,
     );
   }
@@ -201,8 +201,8 @@ class FlutterLocalNotificationsPlugin {
       'firstActionTitle': category.firstActionTitle,
       'secondActionTitle': category.secondActionTitle,
       'thirdActionTitle': category.thirdActionTitle,
-      'firstActionDuration': category.firstActionDuration,
-      'secondActionDuration': category.secondActionDuration,
+      'firstActionPayload': category.firstActionPayload,
+      'secondActionPayload': category.secondActionPayload,
       'thirdActionPayload': category.thirdActionPayload,
     });
   }
@@ -251,8 +251,8 @@ class FlutterLocalNotificationsPlugin {
       'firstActionTitle': category.firstActionTitle,
       'secondActionTitle': category.secondActionTitle,
       'thirdActionTitle': category.thirdActionTitle,
-      'firstActionDuration': category.firstActionDuration,
-      'secondActionDuration': category.secondActionDuration,
+      'firstActionPayload': category.firstActionPayload,
+      'secondActionPayload': category.secondActionPayload,
       'thirdActionPayload': category.thirdActionPayload,
     });
   }
@@ -280,8 +280,8 @@ class FlutterLocalNotificationsPlugin {
       'firstActionTitle': category.firstActionTitle,
       'secondActionTitle': category.secondActionTitle,
       'thirdActionTitle': category.thirdActionTitle,
-      'firstActionDuration': category.firstActionDuration,
-      'secondActionDuration': category.secondActionDuration,
+      'firstActionPayload': category.firstActionPayload,
+      'secondActionPayload': category.secondActionPayload,
       'thirdActionPayload': category.thirdActionPayload,
     });
   }
@@ -309,8 +309,8 @@ class FlutterLocalNotificationsPlugin {
       'firstActionTitle': category.firstActionTitle,
       'secondActionTitle': category.secondActionTitle,
       'thirdActionTitle': category.thirdActionTitle,
-      'firstActionDuration': category.firstActionDuration,
-      'secondActionDuration': category.secondActionDuration,
+      'firstActionPayload': category.firstActionPayload,
+      'secondActionPayload': category.secondActionPayload,
       'thirdActionPayload': category.thirdActionPayload,
     });
   }
@@ -339,8 +339,8 @@ class FlutterLocalNotificationsPlugin {
       'firstActionTitle': category.firstActionTitle,
       'secondActionTitle': category.secondActionTitle,
       'thirdActionTitle': category.thirdActionTitle,
-      'firstActionDuration': category.firstActionDuration,
-      'secondActionDuration': category.secondActionDuration,
+      'firstActionPayload': category.firstActionPayload,
+      'secondActionPayload': category.secondActionPayload,
       'thirdActionPayload': category.thirdActionPayload,
     });
   }

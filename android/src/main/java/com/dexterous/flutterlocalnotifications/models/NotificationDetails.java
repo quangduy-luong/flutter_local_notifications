@@ -91,8 +91,8 @@ public class NotificationDetails {
     public static final String FIRST_ACTION_TITLE = "firstActionTitle";
     public static final String SECOND_ACTION_TITLE = "secondActionTitle";
     public static final String THIRD_ACTION_TITLE = "thirdActionTitle";
-    public static final String FIRST_ACTION_DURATION = "firstActionDuration";
-    public static final String SECOND_ACTION_DURATION = "secondActionDuration";
+    public static final String FIRST_ACTION_PAYLOAD = "firstActionPayload";
+    public static final String SECOND_ACTION_PAYLOAD = "secondActionPayload";
     public static final String THIRD_ACTION_PAYLOAD = "thirdActionPayload";
 
     private static final String LED_ON_MS = "ledOnMs";
@@ -152,8 +152,8 @@ public class NotificationDetails {
     public String firstActionTitle;
     public String secondActionTitle;
     public String thirdActionTitle;
-    public Integer firstActionDuration;
-    public Integer secondActionDuration;
+    public String firstActionPayload;
+    public String secondActionPayload;
     public String thirdActionPayload;
 
 
@@ -170,8 +170,8 @@ public class NotificationDetails {
         notificationDetails.firstActionTitle = (String) arguments.get(FIRST_ACTION_TITLE);
         notificationDetails.secondActionTitle = (String) arguments.get(SECOND_ACTION_TITLE);
         notificationDetails.thirdActionTitle = (String) arguments.get(THIRD_ACTION_TITLE);
-        notificationDetails.firstActionDuration = (Integer) arguments.get(FIRST_ACTION_DURATION);
-        notificationDetails.secondActionDuration = (Integer) arguments.get(SECOND_ACTION_DURATION);
+        notificationDetails.firstActionPayload = (String) arguments.get(FIRST_ACTION_PAYLOAD);
+        notificationDetails.secondActionPayload = (String) arguments.get(SECOND_ACTION_PAYLOAD);
         notificationDetails.thirdActionPayload = (String) arguments.get(THIRD_ACTION_PAYLOAD);
         if (arguments.containsKey(MILLISECONDS_SINCE_EPOCH)) {
             notificationDetails.millisecondsSinceEpoch = (Long) arguments.get(MILLISECONDS_SINCE_EPOCH);

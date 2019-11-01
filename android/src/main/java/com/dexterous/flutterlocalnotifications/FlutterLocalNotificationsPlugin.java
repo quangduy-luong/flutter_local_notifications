@@ -161,42 +161,76 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
                 notificationDetails.firstActionTitle = (String) category.get(NotificationDetails.FIRST_ACTION_TITLE);
                 notificationDetails.secondActionTitle = (String) category.get(NotificationDetails.SECOND_ACTION_TITLE);
                 notificationDetails.thirdActionTitle = (String) category.get(NotificationDetails.THIRD_ACTION_TITLE);
-                notificationDetails.firstActionDuration = (Integer) category.get(NotificationDetails.FIRST_ACTION_DURATION);
-                notificationDetails.secondActionDuration = (Integer) category.get(NotificationDetails.SECOND_ACTION_DURATION);
+                notificationDetails.firstActionPayload = (String) category.get(NotificationDetails.FIRST_ACTION_PAYLOAD);
+                notificationDetails.secondActionPayload = (String) category.get(NotificationDetails.SECOND_ACTION_PAYLOAD);
                 notificationDetails.thirdActionPayload = (String) category.get(NotificationDetails.THIRD_ACTION_PAYLOAD);
             }
             Gson gson = buildGson();
             String notificationDetailsJson = gson.toJson(notificationDetails);
 
-            // Snooze by 30s button
-            Intent snoozeIntentOne = new Intent(context, SnoozeIntentService.class);
-            snoozeIntentOne.setAction(SNOOZE);
-            snoozeIntentOne.putExtra(NOTIFICATION_DETAILS, notificationDetailsJson);
-            snoozeIntentOne.putExtra(SNOOZE, Long.valueOf(notificationDetails.firstActionDuration * 1000L));
-            PendingIntent pendingSnoozeIntentOne = PendingIntent.getService(context, -notificationDetails.id, snoozeIntentOne, PendingIntent.FLAG_UPDATE_CURRENT);
+            if (!StringUtils.isNullOrEmpty(notificationDetails.firstActionTitle)) {
+                // First action
+                PendingIntent firstIntent = getIntentForActionPayload(context,
+                        notificationDetails.firstActionPayload, notificationDetails.id,
+                        -100000 - notificationDetails.id, notificationDetailsJson);
+                builder.addAction(0, notificationDetails.firstActionTitle, firstIntent);
+            }
 
-            builder.addAction(0, notificationDetails.firstActionTitle, pendingSnoozeIntentOne);
+            if (!StringUtils.isNullOrEmpty(notificationDetails.secondActionTitle)) {
+                // Second action
+                PendingIntent secondIntent = getIntentForActionPayload(context,
+                        notificationDetails.secondActionPayload, notificationDetails.id,
+                        -120000 - notificationDetails.id, notificationDetailsJson);
+                builder.addAction(0, notificationDetails.secondActionTitle, secondIntent);
+            }
 
-            // Snooze by 5min button
-            Intent snoozeIntentTwo = new Intent(context, SnoozeIntentService.class);
-            snoozeIntentTwo.setAction(SNOOZE);
-            snoozeIntentTwo.putExtra(NOTIFICATION_DETAILS, notificationDetailsJson);
-            snoozeIntentTwo.putExtra(SNOOZE, Long.valueOf(notificationDetails.secondActionDuration * 1000L));
-            PendingIntent pendingSnoozeIntentTwo = PendingIntent.getService(context, -notificationDetails.id - 10000, snoozeIntentTwo, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            builder.addAction(0, notificationDetails.secondActionTitle, pendingSnoozeIntentTwo);
-
-            // Don't show again button
-            Intent turnOffIntent = new Intent(context, getMainActivityClass(context));
-            turnOffIntent.setAction(TURN_OFF);
-            turnOffIntent.putExtra(PAYLOAD, notificationDetails.thirdActionPayload);
-            turnOffIntent.putExtra(NOTIFICATION_ID, notificationDetails.id);
-            PendingIntent pendingTurnOffIntent = PendingIntent.getActivity(context, -notificationDetails.id - 20000, turnOffIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            builder.addAction(0, notificationDetails.thirdActionTitle, pendingTurnOffIntent);
+            if (!StringUtils.isNullOrEmpty(notificationDetails.thirdActionTitle)) {
+                // Third action
+                PendingIntent thirdIntent = getIntentForActionPayload(context,
+                        notificationDetails.thirdActionPayload, notificationDetails.id,
+                        -140000 - notificationDetails.id, notificationDetailsJson);
+                builder.addAction(0, notificationDetails.thirdActionTitle, thirdIntent);
+            }
         }
 
         return builder.build();
+    }
+
+    private static PendingIntent getIntentForActionPayload(Context context, String payload, Integer id, Integer intentId, String detailsJson) {
+        if (payload.charAt(0) == '/') {
+            // Regular payload: should send to application
+            Intent intent = new Intent(context, getMainActivityClass(context));
+            intent.setAction(TURN_OFF);
+            intent.putExtra(PAYLOAD, payload);
+            intent.putExtra(NOTIFICATION_ID, id);
+            intent.putExtra(NOTIFICATION_DETAILS, detailsJson);
+            return PendingIntent.getActivity(context, intentId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        } else if (payload.contains(",")) {
+            // Location payload: should somehow register a geofence
+            // TODO: implement
+            Intent intent = new Intent(context, getMainActivityClass(context));
+            intent.setAction(TURN_OFF);
+            intent.putExtra(PAYLOAD, payload);
+            intent.putExtra(NOTIFICATION_ID, id);
+            intent.putExtra(NOTIFICATION_DETAILS, detailsJson);
+            return PendingIntent.getActivity(context, intentId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        } else if (payload.matches("[0-9]+")) {
+            // Integer payload - should reschedule
+            Intent intent = new Intent(context, SnoozeIntentService.class);
+            intent.setAction(SNOOZE);
+            intent.putExtra(SNOOZE, Long.valueOf(Integer.parseInt(payload) * 1000L));
+            intent.putExtra(NOTIFICATION_ID, id);
+            intent.putExtra(NOTIFICATION_DETAILS, detailsJson);
+            return PendingIntent.getService(context, intentId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        } else {
+            // Unknown payload - should just default to opening the app
+            Intent intent = new Intent(context, getMainActivityClass(context));
+            intent.setAction(TURN_OFF);
+            intent.putExtra(PAYLOAD, payload);
+            intent.putExtra(NOTIFICATION_ID, id);
+            intent.putExtra(NOTIFICATION_DETAILS, detailsJson);
+            return PendingIntent.getActivity(context, intentId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        }
     }
 
     private static void setSmallIcon(Context context, NotificationDetails notificationDetails, NotificationCompat.Builder builder) {
