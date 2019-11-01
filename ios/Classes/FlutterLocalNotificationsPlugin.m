@@ -226,26 +226,38 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
     
     NSMutableArray<UNNotificationAction *> *actions = [NSMutableArray new];
     if ([categoryDict[FIRST_ACTION_TITLE] length] > 0) {
+        UNNotificationActionOptions option = UNNotificationActionOptionForeground;
+        if ([Utils stringIsNumeric:categoryDict[FIRST_ACTION_PAYLOAD]]) {
+            option = UNNotificationActionOptionNone;
+        }
         UNNotificationAction* firstAction = [UNNotificationAction
         actionWithIdentifier:FIRST_ACTION_TITLE
         title:categoryDict[FIRST_ACTION_TITLE]
-        options:UNNotificationActionOptionNone];
+        options:option];
         [actions addObject:firstAction];
     }
     
     if ([categoryDict[SECOND_ACTION_TITLE] length] > 0) {
+        UNNotificationActionOptions option = UNNotificationActionOptionForeground;
+        if ([Utils stringIsNumeric:categoryDict[SECOND_ACTION_PAYLOAD]]) {
+            option = UNNotificationActionOptionNone;
+        }
         UNNotificationAction* secondAction = [UNNotificationAction
         actionWithIdentifier:SECOND_ACTION_TITLE
         title:categoryDict[SECOND_ACTION_TITLE]
-        options:UNNotificationActionOptionNone];
+        options:option];
         [actions addObject:secondAction];
     }
     
     if ([categoryDict[THIRD_ACTION_TITLE] length] > 0) {
+        UNNotificationActionOptions option = UNNotificationActionOptionForeground;
+        if ([Utils stringIsNumeric:categoryDict[THIRD_ACTION_PAYLOAD]]) {
+            option = UNNotificationActionOptionNone;
+        }
         UNNotificationAction* thirdAction = [UNNotificationAction
         actionWithIdentifier:THIRD_ACTION_TITLE
         title:categoryDict[THIRD_ACTION_TITLE]
-        options:UNNotificationActionOptionNone];
+        options:option];
         [actions addObject:thirdAction];
     }
     

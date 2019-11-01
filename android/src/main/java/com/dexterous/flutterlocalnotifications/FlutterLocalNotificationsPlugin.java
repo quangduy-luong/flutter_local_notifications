@@ -918,7 +918,8 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
             channel.invokeMethod("selectNotification", payload);
             return true;
         } else if (TURN_OFF.equals(intent.getAction())) {
-            cancelNotification(intent.getIntExtra(NOTIFICATION_ID, -1));
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(registrar.context());
+            notificationManager.cancel(intent.getIntExtra(NOTIFICATION_ID, -1));
             String payload = intent.getStringExtra(PAYLOAD);
             channel.invokeMethod("selectNotification", payload);
             return true;
