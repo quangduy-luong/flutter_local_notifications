@@ -18,7 +18,7 @@
 @property(nonatomic, strong) NSString *firstActionTitle;
 @property(nonatomic, strong) NSString *secondActionTitle;
 @property(nonatomic, strong) NSString *thirdActionTitle;
-@property(nonatomic, strong) NSNumber *firstActionDuration;
-@property(nonatomic, strong) NSNumber *secondActionDuration;
+@property(nonatomic, strong) NSString *firstActionPayload;
+@property(nonatomic, strong) NSString *secondActionPayload;
 @property(nonatomic, strong) NSString *thirdActionPayload;
 @end

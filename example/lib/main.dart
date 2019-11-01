@@ -63,15 +63,13 @@ class _HomePageState extends State<HomePage> {
       initializationSettings,
       onSelectNotification: onSelectNotification,
       categories: [
-        NotificationCategory.snoozeable(),
-        NotificationCategory.snoozeable(
+        NotificationCategory.custom(),
+        NotificationCategory.custom(
           identifier: 'snoozeable_custom',
-          firstActionTitle: '',
-          firstActionPayload: '',
+          firstActionTitle: 'Home',
+          firstActionPayload: '/home',
           secondActionTitle: 'Snooze 10s',
           secondActionPayload: '10',
-          thirdActionTitle: 'Snooze 20s',
-          thirdActionPayload: '20',
         )
       ],
     );

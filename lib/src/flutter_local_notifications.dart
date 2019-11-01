@@ -101,7 +101,7 @@ class NotificationCategory {
         'no_actions', 'Default', '', '', '', '', '', '');
   }
 
-  factory NotificationCategory.snoozeable({
+  factory NotificationCategory.custom({
     String identifier = 'snoozeable',
     String title = 'Snoozeable',
     String firstActionTitle = 'Snooze 30s',
