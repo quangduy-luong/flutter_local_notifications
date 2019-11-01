@@ -101,15 +101,20 @@ class NotificationCategory {
         'no_actions', 'Default', '', '', '', '', '', '');
   }
 
+  factory NotificationCategory.snoozeable() {
+    return NotificationCategory._('snoozeable', 'Snoozeable', 'Snooze 10s',
+        'Snooze 30s', 'Snooze 1 min', '10', '30', '60');
+  }
+
   factory NotificationCategory.custom({
-    String identifier = 'snoozeable',
-    String title = 'Snoozeable',
-    String firstActionTitle = 'Snooze 30s',
-    String secondActionTitle = 'Snooze 5min',
-    String thirdActionTitle = 'Don\'t show again',
-    String firstActionPayload = '30',
-    String secondActionPayload = '300',
-    String thirdActionPayload = '/settings',
+    @required String identifier,
+    @required String title,
+    String firstActionTitle,
+    String secondActionTitle,
+    String thirdActionTitle,
+    String firstActionPayload,
+    String secondActionPayload,
+    String thirdActionPayload,
   }) {
     return NotificationCategory._(
       identifier,
