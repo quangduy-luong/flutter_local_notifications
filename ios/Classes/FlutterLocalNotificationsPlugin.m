@@ -224,31 +224,28 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
         return [UNNotificationCategory categoryWithIdentifier:NO_ACTIONS_CATEGORY actions:@[] intentIdentifiers:@[] options:UNNotificationCategoryOptionNone];
     }
     
-    UNNotificationAction* firstAction = [UNNotificationAction
-    actionWithIdentifier:FIRST_ACTION_TITLE
-    title:categoryDict[FIRST_ACTION_TITLE]
-    options:UNNotificationActionOptionNone];
-    
-    UNNotificationAction* secondAction = [UNNotificationAction
-    actionWithIdentifier:SECOND_ACTION_TITLE
-    title:categoryDict[SECOND_ACTION_TITLE]
-    options:UNNotificationActionOptionNone];
-    
-    UNNotificationAction* thirdAction = [UNNotificationAction
-    actionWithIdentifier:THIRD_ACTION_TITLE
-    title:categoryDict[THIRD_ACTION_TITLE]
-    options:UNNotificationActionOptionNone];
-    
     NSMutableArray<UNNotificationAction *> *actions = [NSMutableArray new];
     if ([categoryDict[FIRST_ACTION_TITLE] length] > 0) {
+        UNNotificationAction* firstAction = [UNNotificationAction
+        actionWithIdentifier:FIRST_ACTION_TITLE
+        title:categoryDict[FIRST_ACTION_TITLE]
+        options:UNNotificationActionOptionNone];
         [actions addObject:firstAction];
     }
     
     if ([categoryDict[SECOND_ACTION_TITLE] length] > 0) {
+        UNNotificationAction* secondAction = [UNNotificationAction
+        actionWithIdentifier:SECOND_ACTION_TITLE
+        title:categoryDict[SECOND_ACTION_TITLE]
+        options:UNNotificationActionOptionNone];
         [actions addObject:secondAction];
     }
     
     if ([categoryDict[THIRD_ACTION_TITLE] length] > 0) {
+        UNNotificationAction* thirdAction = [UNNotificationAction
+        actionWithIdentifier:THIRD_ACTION_TITLE
+        title:categoryDict[THIRD_ACTION_TITLE]
+        options:UNNotificationActionOptionNone];
         [actions addObject:thirdAction];
     }
     

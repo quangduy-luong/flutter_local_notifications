@@ -109,13 +109,16 @@ class NotificationCategory {
   factory NotificationCategory.custom({
     @required String identifier,
     @required String title,
-    String firstActionTitle,
-    String secondActionTitle,
-    String thirdActionTitle,
-    String firstActionPayload,
-    String secondActionPayload,
-    String thirdActionPayload,
+    String firstActionTitle = '',
+    String secondActionTitle = '',
+    String thirdActionTitle = '',
+    String firstActionPayload = '',
+    String secondActionPayload = '',
+    String thirdActionPayload = '',
   }) {
+    assert (firstActionTitle != null);
+    assert (secondActionTitle != null);
+    assert (thirdActionTitle != null);
     return NotificationCategory._(
       identifier,
       title,
