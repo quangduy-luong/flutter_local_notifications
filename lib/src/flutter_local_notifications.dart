@@ -101,11 +101,6 @@ class NotificationCategory {
         'no_actions', 'Default', '', '', '', '', '', '');
   }
 
-  factory NotificationCategory.snoozeable() {
-    return NotificationCategory._('snoozeable', 'Snoozeable', 'Snooze 10s',
-        'Snooze 30s', 'Snooze 1 min', '10', '30', '60');
-  }
-
   factory NotificationCategory.custom({
     @required String identifier,
     @required String title,
@@ -116,9 +111,9 @@ class NotificationCategory {
     String secondActionPayload = '',
     String thirdActionPayload = '',
   }) {
-    assert (firstActionTitle != null);
-    assert (secondActionTitle != null);
-    assert (thirdActionTitle != null);
+    assert(firstActionTitle != null);
+    assert(secondActionTitle != null);
+    assert(thirdActionTitle != null);
     return NotificationCategory._(
       identifier,
       title,
@@ -350,6 +345,46 @@ class FlutterLocalNotificationsPlugin {
       'firstActionPayload': category.firstActionPayload,
       'secondActionPayload': category.secondActionPayload,
       'thirdActionPayload': category.thirdActionPayload,
+    });
+  }
+
+  Future<void> showAtLocation(
+    int id,
+    String title,
+    String body,
+    NotificationDetails notificationDetails,
+    double latitude,
+    double longitude, {
+    double radius = 100.0,
+    bool notifyOnEntry = true,
+    bool notifyOnExit = false,
+    String payload,
+    String categoryIdentifier,
+  }) async {
+    _validateId(id);
+    var category = _categories.firstWhere(
+        (c) => c.identifier == categoryIdentifier,
+        orElse: () => _categories.first);
+    var serializedPlatformSpecifics =
+        _retrievePlatformSpecificNotificationDetails(notificationDetails);
+    await _channel.invokeMethod('showAtLocation', <String, dynamic>{
+      'id': id,
+      'title': title,
+      'body': body,
+      'platformSpecifics': serializedPlatformSpecifics,
+      'payload': payload ?? '',
+      'category': category.identifier,
+      'firstActionTitle': category.firstActionTitle,
+      'secondActionTitle': category.secondActionTitle,
+      'thirdActionTitle': category.thirdActionTitle,
+      'firstActionPayload': category.firstActionPayload,
+      'secondActionPayload': category.secondActionPayload,
+      'thirdActionPayload': category.thirdActionPayload,
+      'latitude': latitude,
+      'longitude': longitude,
+      'radius': radius,
+      'notifyOnEntry': notifyOnEntry,
+      'notifyOnExit': notifyOnExit,
     });
   }
 

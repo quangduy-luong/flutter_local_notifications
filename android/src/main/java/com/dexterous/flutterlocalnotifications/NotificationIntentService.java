@@ -22,9 +22,9 @@ import java.lang.reflect.Type;
  * TODO: Customize class - update intent actions, extra parameters and static
  * helper methods.
  */
-public class SnoozeIntentService extends IntentService {
-    public SnoozeIntentService() {
-        super("SnoozeIntentService");
+public class NotificationIntentService extends IntentService {
+    public NotificationIntentService() {
+        super("NotificationIntentService");
     }
 
     @Override
@@ -49,6 +49,11 @@ public class SnoozeIntentService extends IntentService {
                     PendingIntent pendingIntent = PendingIntent.getBroadcast(this, details.id, snoozeIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                     AlarmManagerCompat.setExact(alarmManager, AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
                 }
+            } else if (FlutterLocalNotificationsPlugin.REMIND_AT_LOCATION.equals(action)) {
+                // TODO: handle geofence trigger
+            } else {
+                // Unknown intent: return
+                return;
             }
         }
     }

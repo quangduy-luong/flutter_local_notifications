@@ -22,7 +22,7 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     defaultConfig {
         minSdkVersion 16
@@ -36,4 +36,5 @@ android {
 dependencies {
     implementation "androidx.core:core:1.0.1"
     implementation "com.google.code.gson:gson:2.8.2"
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
 }

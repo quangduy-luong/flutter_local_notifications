@@ -94,6 +94,11 @@ public class NotificationDetails {
     public static final String FIRST_ACTION_PAYLOAD = "firstActionPayload";
     public static final String SECOND_ACTION_PAYLOAD = "secondActionPayload";
     public static final String THIRD_ACTION_PAYLOAD = "thirdActionPayload";
+    public static final String LATITUDE = "latitude";
+    public static final String LONGITUDE = "longitude";
+    public static final String RADIUS = "radius";
+    public static final String NOTIFY_ON_ENTRY = "notifyOnEntry";
+    public static final String NOTIFY_ON_EXIT = "notifyOnExit";
 
     private static final String LED_ON_MS = "ledOnMs";
     private static final String LED_OFF_MS = "ledOffMs";
@@ -155,6 +160,11 @@ public class NotificationDetails {
     public String firstActionPayload;
     public String secondActionPayload;
     public String thirdActionPayload;
+    public Double latitude;
+    public Double longitude;
+    public Double radius;
+    public Boolean notifyOnEntry;
+    public Boolean notifyOnExit;
 
 
     // Note: this is set on the Android to save details about the icon that should be used when re-hydrating scheduled notifications when a device has been restarted.
@@ -173,6 +183,12 @@ public class NotificationDetails {
         notificationDetails.firstActionPayload = (String) arguments.get(FIRST_ACTION_PAYLOAD);
         notificationDetails.secondActionPayload = (String) arguments.get(SECOND_ACTION_PAYLOAD);
         notificationDetails.thirdActionPayload = (String) arguments.get(THIRD_ACTION_PAYLOAD);
+        notificationDetails.latitude = (Double) arguments.get(LATITUDE);
+        notificationDetails.longitude = (Double) arguments.get(LONGITUDE);
+        notificationDetails.radius = (Double) arguments.get(RADIUS);
+        notificationDetails.notifyOnEntry = (Boolean) arguments.get(NOTIFY_ON_ENTRY);
+        notificationDetails.notifyOnExit = (Boolean) arguments.get(NOTIFY_ON_EXIT);
+
         if (arguments.containsKey(MILLISECONDS_SINCE_EPOCH)) {
             notificationDetails.millisecondsSinceEpoch = (Long) arguments.get(MILLISECONDS_SINCE_EPOCH);
         }

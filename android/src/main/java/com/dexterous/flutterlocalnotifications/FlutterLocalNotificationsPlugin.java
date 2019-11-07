@@ -1,5 +1,6 @@
 package com.dexterous.flutterlocalnotifications;
 
+import android.Manifest;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -8,6 +9,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioAttributes;
@@ -18,10 +20,12 @@ import android.text.Html;
 import android.text.Spanned;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.AlarmManagerCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.IconCompat;
 
 import com.dexterous.flutterlocalnotifications.models.IconSource;
@@ -37,6 +41,12 @@ import com.dexterous.flutterlocalnotifications.models.styles.MessagingStyleInfor
 import com.dexterous.flutterlocalnotifications.models.styles.StyleInformation;
 import com.dexterous.flutterlocalnotifications.utils.BooleanUtils;
 import com.dexterous.flutterlocalnotifications.utils.StringUtils;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingClient;
+import com.google.android.gms.location.GeofencingRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -49,6 +59,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import io.flutter.Log;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -63,7 +74,7 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
     public static final String SHARED_PREFERENCES_KEY = "notification_plugin_cache";
     private static final String DRAWABLE = "drawable";
     private static final String DEFAULT_ICON = "defaultIcon";
-    private static final String SELECT_NOTIFICATION = "SELECT_NOTIFICATION";
+    protected static final String SELECT_NOTIFICATION = "SELECT_NOTIFICATION";
     private static final String SCHEDULED_NOTIFICATIONS = "scheduled_notifications";
     private static final String INITIALIZE_METHOD = "initialize";
     private static final String PENDING_NOTIFICATION_REQUESTS_METHOD = "pendingNotificationRequests";
@@ -75,8 +86,9 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
     private static final String SHOW_DAILY_AT_TIME_METHOD = "showDailyAtTime";
     private static final String SHOW_WEEKLY_AT_DAY_AND_TIME_METHOD = "showWeeklyAtDayAndTime";
     private static final String GET_NOTIFICATION_APP_LAUNCH_DETAILS_METHOD = "getNotificationAppLaunchDetails";
+    private static final String SHOW_AT_LOCATION_METHOD = "showAtLocation";
     private static final String METHOD_CHANNEL = "dexterous.com/flutter/local_notifications";
-    private static final String PAYLOAD = "payload";
+    protected static final String PAYLOAD = "payload";
     private static final String INVALID_ICON_ERROR_CODE = "INVALID_ICON";
     private static final String INVALID_LARGE_ICON_ERROR_CODE = "INVALID_LARGE_ICON";
     private static final String INVALID_BIG_PICTURE_ERROR_CODE = "INVALID_BIG_PICTURE";
@@ -89,6 +101,7 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
     private static final String CATEGORY_IDENTIFIER = "category";
     public static String TURN_OFF = "turnOff";
     public static String SNOOZE = "snooze";
+    public static String REMIND_AT_LOCATION = "remindAtLocation";
     public static String CATEGORIES = "categories";
     public static String NOTIFICATION_ID = "notification_id";
     public static String NOTIFICATION = "notification";
@@ -108,7 +121,9 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
     public static void rescheduleNotifications(Context context) {
         ArrayList<NotificationDetails> scheduledNotifications = loadScheduledNotifications(context);
         for (NotificationDetails scheduledNotification : scheduledNotifications) {
-            if (scheduledNotification.repeatInterval == null) {
+            if (scheduledNotification.latitude != null && scheduledNotification.longitude != null) {
+                positionNotification(context, scheduledNotification, false);
+            } else if (scheduledNotification.repeatInterval == null) {
                 scheduleNotification(context, scheduledNotification, false);
             } else {
                 repeatNotification(context, scheduledNotification, false);
@@ -208,15 +223,15 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
         } else if (payload.contains(",")) {
             // Location payload: should somehow register a geofence
             // TODO: implement
-            Intent intent = new Intent(context, getMainActivityClass(context));
-            intent.setAction(TURN_OFF);
+            Intent intent = new Intent(context, NotificationIntentService.class);
+            intent.setAction(REMIND_AT_LOCATION);
             intent.putExtra(PAYLOAD, payload);
             intent.putExtra(NOTIFICATION_ID, id);
             intent.putExtra(NOTIFICATION_DETAILS, detailsJson);
             return PendingIntent.getActivity(context, intentId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         } else if (payload.matches("[0-9]+")) {
             // Integer payload - should reschedule
-            Intent intent = new Intent(context, SnoozeIntentService.class);
+            Intent intent = new Intent(context, NotificationIntentService.class);
             intent.setAction(SNOOZE);
             intent.putExtra(SNOOZE, Long.valueOf(Integer.parseInt(payload) * 1000L));
             intent.putExtra(NOTIFICATION_ID, id);
@@ -315,6 +330,54 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
         } else {
             return Html.fromHtml(html);
         }
+    }
+
+    private static void positionNotification(Context context, final NotificationDetails notificationDetails, Boolean updateScheduledNotificationsCache) {
+        Gson gson = buildGson();
+        String notificationDetailsJson = gson.toJson(notificationDetails);
+        Intent notificationIntent = new Intent(context, ScheduledNotificationReceiver.class);
+        notificationIntent.setAction(REMIND_AT_LOCATION);
+        notificationIntent.putExtra(NOTIFICATION_ID, notificationDetails.id);
+        notificationIntent.putExtra(PAYLOAD, notificationDetails.payload);
+        notificationIntent.putExtra(NOTIFICATION_DETAILS, notificationDetailsJson);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, notificationDetails.id + 100000, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        int transition = Geofence.GEOFENCE_TRANSITION_ENTER;
+//        if (notificationDetails.notifyOnEntry && notificationDetails.notifyOnExit) {
+//            transition = Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT;
+//        } else if (notificationDetails.notifyOnExit) {
+//            transition = Geofence.GEOFENCE_TRANSITION_EXIT;
+//        }
+
+        GeofencingClient geofencingClient = LocationServices.getGeofencingClient(context);
+        Geofence.Builder builder = new Geofence.Builder();
+        builder.setRequestId(notificationDetails.id.toString())
+                .setCircularRegion(notificationDetails.latitude, notificationDetails.longitude, 200.0f)
+                .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER);
+        Geofence geofence = builder.build();
+
+        GeofencingRequest request = new GeofencingRequest.Builder()
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                .addGeofence(geofence)
+                .build();
+
+        geofencingClient.addGeofences(request, pendingIntent).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d("GEOFENCE", "Geofence failed to register.");
+            }
+        }).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.d("GEOFENCE", "Geofence successfully added.");
+            }
+        });
+
+        if (updateScheduledNotificationsCache) {
+            saveScheduledNotification(context, notificationDetails);
+        }
+
     }
 
     private static void scheduleNotification(Context context, final NotificationDetails notificationDetails, Boolean updateScheduledNotificationsCache) {
@@ -727,6 +790,9 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
             case PENDING_NOTIFICATION_REQUESTS_METHOD:
                 pendingNotificationRequests(result);
                 break;
+            case SHOW_AT_LOCATION_METHOD:
+                showAtLocation(call, result);
+                break;
             default:
                 result.notImplemented();
                 break;
@@ -752,6 +818,15 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
         Integer id = call.arguments();
         cancelNotification(id);
         result.success(null);
+    }
+
+    private void showAtLocation(MethodCall call, Result result) {
+        Map<String, Object> arguments = call.arguments();
+        NotificationDetails notificationDetails = extractNotificationDetails(result, arguments);
+        if (notificationDetails != null) {
+            positionNotification(registrar.context(), notificationDetails, true);
+            result.success(null);
+        }
     }
 
     private void repeat(MethodCall call, Result result) {
@@ -795,6 +870,15 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
 
     @SuppressWarnings("unchecked")
     private void initialize(MethodCall call, Result result) {
+        String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION};
+
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(registrar.context(), permission) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(registrar.activity(), new String[] {permission}, 25);
+            }
+        }
+
+
         Map<String, Object> arguments = call.arguments();
         String defaultIcon = (String) arguments.get(DEFAULT_ICON);
         ArrayList<HashMap<String, Object>> cat = (ArrayList<HashMap<String, Object>>) arguments.get(CATEGORIES);

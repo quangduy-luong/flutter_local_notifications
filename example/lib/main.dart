@@ -63,7 +63,16 @@ class _HomePageState extends State<HomePage> {
       initializationSettings,
       onSelectNotification: onSelectNotification,
       categories: [
-        NotificationCategory.snoozeable(),
+        NotificationCategory.custom(
+          identifier: 'snoozeable',
+          title: 'Snoozeable',
+          firstActionTitle: 'Snooze 10s',
+          secondActionTitle: 'Snooze 20s',
+          thirdActionTitle: 'Snooze 30s',
+          firstActionPayload: '10',
+          secondActionPayload: '20',
+          thirdActionPayload: '30',
+        ),
         NotificationCategory.custom(
           identifier: 'snoozeable_custom',
           title: 'Snoozeable Custom',
@@ -94,6 +103,13 @@ class _HomePageState extends State<HomePage> {
                     padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 8.0),
                     child: Text(
                         'Tap on a notification when it appears to trigger navigation'),
+                  ),
+                  PaddedRaisedButton(
+                    buttonText:
+                        'Schedule a location at 50.2390, 12.8414',
+                    onPressed: () async {
+                      await _showLocationNotification(50.2390, 12.8414);
+                    },
                   ),
                   PaddedRaisedButton(
                     buttonText:
@@ -252,6 +268,18 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  Future<void> _showLocationNotification(double lat, double lng) async {
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+        'your channel id', 'your channel name', 'your channel description',
+        importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
+    var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+    var platformChannelSpecifics = NotificationDetails(
+        androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.showAtLocation(
+        20, 'plain title', 'plain body', platformChannelSpecifics, lat, lng,
+        payload: 'item x', notifyOnEntry: true, notifyOnExit: true);
   }
 
   Future<void> _showDefaultSnoozeNotification() async {
