@@ -62,6 +62,16 @@ class Time {
   }
 }
 
+/// A category for notification actions.
+/// 
+/// For `snooze` actions: the payload should be the number of seconds to
+/// snooze the notification for.
+/// 
+/// For `geofence` actions: to reschedule the same geofence, the payload
+/// must be exactly `remindAtLocation`.
+/// 
+/// For `payload` actions: to simply pass a payload back to the app,
+/// the payload must not be numeric only or match `remindAtLocation`.
 class NotificationCategory {
   final String identifier;
   final String title;

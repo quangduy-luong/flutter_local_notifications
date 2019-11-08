@@ -80,7 +80,17 @@ class _HomePageState extends State<HomePage> {
           firstActionPayload: '/home',
           secondActionTitle: 'Snooze 10s',
           secondActionPayload: '10',
-        )
+        ),
+        NotificationCategory.custom(
+          identifier: 'location',
+          title: 'Location',
+          firstActionTitle: 'Remind me next time',
+          firstActionPayload: 'remindAtLocation',
+          secondActionTitle: 'Snooze 10s',
+          secondActionPayload: '10',
+          thirdActionTitle: 'Don\'t show again',
+          thirdActionPayload: '/settings',
+        ),
       ],
     );
   }
@@ -105,8 +115,7 @@ class _HomePageState extends State<HomePage> {
                         'Tap on a notification when it appears to trigger navigation'),
                   ),
                   PaddedRaisedButton(
-                    buttonText:
-                        'Schedule a location at 50.2390, 12.8414',
+                    buttonText: 'Schedule a location at 50.2390, 12.8414',
                     onPressed: () async {
                       await _showLocationNotification(50.2390, 12.8414);
                     },
@@ -279,7 +288,10 @@ class _HomePageState extends State<HomePage> {
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
     await flutterLocalNotificationsPlugin.showAtLocation(
         20, 'plain title', 'plain body', platformChannelSpecifics, lat, lng,
-        payload: 'item x', notifyOnEntry: true, notifyOnExit: true);
+        payload: 'item x',
+        notifyOnEntry: true,
+        notifyOnExit: false,
+        categoryIdentifier: 'location');
   }
 
   Future<void> _showDefaultSnoozeNotification() async {

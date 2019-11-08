@@ -220,15 +220,14 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
             intent.putExtra(NOTIFICATION_ID, id);
             intent.putExtra(NOTIFICATION_DETAILS, detailsJson);
             return PendingIntent.getActivity(context, intentId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        } else if (payload.contains(",")) {
+        } else if (payload.equals(REMIND_AT_LOCATION)) {
             // Location payload: should somehow register a geofence
-            // TODO: implement
             Intent intent = new Intent(context, NotificationIntentService.class);
             intent.setAction(REMIND_AT_LOCATION);
             intent.putExtra(PAYLOAD, payload);
             intent.putExtra(NOTIFICATION_ID, id);
             intent.putExtra(NOTIFICATION_DETAILS, detailsJson);
-            return PendingIntent.getActivity(context, intentId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            return PendingIntent.getService(context, intentId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         } else if (payload.matches("[0-9]+")) {
             // Integer payload - should reschedule
             Intent intent = new Intent(context, NotificationIntentService.class);
@@ -340,21 +339,21 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
         notificationIntent.putExtra(NOTIFICATION_ID, notificationDetails.id);
         notificationIntent.putExtra(PAYLOAD, notificationDetails.payload);
         notificationIntent.putExtra(NOTIFICATION_DETAILS, notificationDetailsJson);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, notificationDetails.id + 100000, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, notificationDetails.id, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         int transition = Geofence.GEOFENCE_TRANSITION_ENTER;
-//        if (notificationDetails.notifyOnEntry && notificationDetails.notifyOnExit) {
-//            transition = Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT;
-//        } else if (notificationDetails.notifyOnExit) {
-//            transition = Geofence.GEOFENCE_TRANSITION_EXIT;
-//        }
+        if (notificationDetails.notifyOnEntry && notificationDetails.notifyOnExit) {
+            transition = Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT;
+        } else if (notificationDetails.notifyOnExit) {
+            transition = Geofence.GEOFENCE_TRANSITION_EXIT;
+        }
 
         GeofencingClient geofencingClient = LocationServices.getGeofencingClient(context);
         Geofence.Builder builder = new Geofence.Builder();
         builder.setRequestId(notificationDetails.id.toString())
                 .setCircularRegion(notificationDetails.latitude, notificationDetails.longitude, 200.0f)
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER);
+                .setTransitionTypes(transition);
         Geofence geofence = builder.build();
 
         GeofencingRequest request = new GeofencingRequest.Builder()
@@ -366,6 +365,7 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.d("GEOFENCE", "Geofence failed to register.");
+                Log.d("GEOFENCE", e.getMessage());
             }
         }).addOnSuccessListener(new OnSuccessListener<Void>() {
             @Override
@@ -453,7 +453,7 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
         }
     }
 
-    private static void saveScheduledNotification(Context context, NotificationDetails notificationDetails) {
+    protected static void saveScheduledNotification(Context context, NotificationDetails notificationDetails) {
         ArrayList<NotificationDetails> scheduledNotifications = loadScheduledNotifications(context);
         ArrayList<NotificationDetails> scheduledNotificationsToSave = new ArrayList<>();
         for (NotificationDetails scheduledNotification : scheduledNotifications) {
@@ -964,6 +964,8 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarmManager = getAlarmManager(context);
         alarmManager.cancel(pendingIntent);
+        GeofencingClient client = LocationServices.getGeofencingClient(context);
+        client.removeGeofences(pendingIntent);
         NotificationManagerCompat notificationManager = getNotificationManager(context);
         notificationManager.cancel(id);
         removeNotificationFromCache(id, context);
