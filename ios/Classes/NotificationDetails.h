@@ -21,4 +21,9 @@
 @property(nonatomic, strong) NSString *firstActionPayload;
 @property(nonatomic, strong) NSString *secondActionPayload;
 @property(nonatomic, strong) NSString *thirdActionPayload;
+@property(nonatomic, strong) NSNumber *latitude;
+@property(nonatomic, strong) NSNumber *longitude;
+@property(nonatomic, strong) NSNumber *radius;
+@property(nonatomic) bool notifyOnEntry;
+@property(nonatomic) bool notifyOnExit;
 @end

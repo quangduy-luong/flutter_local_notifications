@@ -987,6 +987,8 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context, scheduledNotification.id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
             AlarmManager alarmManager = getAlarmManager(context);
             alarmManager.cancel(pendingIntent);
+            GeofencingClient client = LocationServices.getGeofencingClient(context);
+            client.removeGeofences(pendingIntent);
         }
 
         saveScheduledNotifications(context, new ArrayList<NotificationDetails>());

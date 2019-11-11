@@ -28,6 +28,7 @@ NSString *const CANCEL_METHOD = @"cancel";
 NSString *const CANCEL_ALL_METHOD = @"cancelAll";
 NSString *const PENDING_NOTIFICATIONS_REQUESTS_METHOD = @"pendingNotificationRequests";
 NSString *const GET_NOTIFICATION_APP_LAUNCH_DETAILS_METHOD = @"getNotificationAppLaunchDetails";
+NSString *const SHOW_AT_LOCATION_METHOD = @"showAtLocation";
 NSString *const CHANNEL = @"dexterous.com/flutter/local_notifications";
 NSString *const CALLBACK_CHANNEL = @"dexterous.com/flutter/local_notifications_background";
 NSString *const ON_NOTIFICATION_METHOD = @"onNotification";
@@ -66,6 +67,12 @@ NSString *const THIRD_ACTION_TITLE = @"thirdActionTitle";
 NSString *const FIRST_ACTION_PAYLOAD = @"firstActionPayload";
 NSString *const SECOND_ACTION_PAYLOAD = @"secondActionPayload";
 NSString *const THIRD_ACTION_PAYLOAD = @"thirdActionPayload";
+NSString *const LATITUDE = @"latitude";
+NSString *const LONGITUDE = @"longitude";
+NSString *const RADIUS = @"radius";
+NSString *const NOTIFY_ON_ENTRY = @"notifyOnEntry";
+NSString *const NOTIFY_ON_EXIT = @"notifyOnExit";
+NSString *const REMIND_AT_LOCATION = @"remindAtLocation";
 
 NSString *const NOTIFICATION_ID = @"NotificationId";
 NSString *const PAYLOAD = @"payload";
@@ -89,6 +96,7 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
     [registrar addMethodCallDelegate:instance channel:channel];
     if(@available(iOS 10.0, *)) {
         UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+        instance->locationManager = [CLLocationManager new];
         center.delegate = instance;
     }
 }
@@ -123,6 +131,7 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
                     pendingNotificationRequest[PAYLOAD] = request.content.userInfo[PAYLOAD];
                 }
                 [pendingNotificationRequests addObject:pendingNotificationRequest];
+                NSLog(@"%@", request);
             }
             result(pendingNotificationRequests);
         }];
@@ -216,6 +225,21 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
         }
         result(@YES);
     }
+    CLAuthorizationStatus status = [CLLocationManager authorizationStatus];
+    bool needAutorization = false;
+    switch (status) {
+        case kCLAuthorizationStatusAuthorizedAlways:
+        case kCLAuthorizationStatusAuthorizedWhenInUse:
+            break;
+        case kCLAuthorizationStatusDenied:
+        case kCLAuthorizationStatusRestricted:
+        case kCLAuthorizationStatusNotDetermined:
+            needAutorization = true;
+            break;
+    }
+    if (needAutorization) {
+        [locationManager requestWhenInUseAuthorization];
+    }
     initialized = true;
 }
 
@@ -285,6 +309,21 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
     notificationDetails.firstActionPayload = call.arguments[FIRST_ACTION_PAYLOAD];
     notificationDetails.secondActionPayload = call.arguments[SECOND_ACTION_PAYLOAD];
     notificationDetails.thirdActionPayload = call.arguments[THIRD_ACTION_PAYLOAD];
+    notificationDetails.latitude = call.arguments[LATITUDE];
+    notificationDetails.longitude = call.arguments[LONGITUDE];
+    notificationDetails.radius = call.arguments[RADIUS];
+    
+    if(call.arguments[NOTIFY_ON_ENTRY] != [NSNull null]) {
+        notificationDetails.notifyOnEntry = [call.arguments[NOTIFY_ON_ENTRY] boolValue];
+    } else {
+        notificationDetails.notifyOnEntry = false;
+    }
+    
+    if(call.arguments[NOTIFY_ON_EXIT] != [NSNull null]) {
+        notificationDetails.notifyOnExit = [call.arguments[NOTIFY_ON_EXIT] boolValue];
+    } else {
+        notificationDetails.notifyOnExit = false;
+    }
     
     if(call.arguments[PLATFORM_SPECIFICS] != [NSNull null]) {
         NSDictionary *platformSpecifics = call.arguments[PLATFORM_SPECIFICS];
@@ -364,8 +403,7 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     if([INITIALIZE_METHOD isEqualToString:call.method]) {
         [self initialize:call result:result];
-    } else if ([SHOW_METHOD isEqualToString:call.method] || [SCHEDULE_METHOD isEqualToString:call.method] || [PERIODICALLY_SHOW_METHOD isEqualToString:call.method] || [SHOW_DAILY_AT_TIME_METHOD isEqualToString:call.method]
-               || [SHOW_WEEKLY_AT_DAY_AND_TIME_METHOD isEqualToString:call.method]) {
+    } else if ([SHOW_METHOD isEqualToString:call.method] || [SCHEDULE_METHOD isEqualToString:call.method] || [PERIODICALLY_SHOW_METHOD isEqualToString:call.method] || [SHOW_DAILY_AT_TIME_METHOD isEqualToString:call.method] || [SHOW_AT_LOCATION_METHOD isEqualToString:call.method] || [SHOW_WEEKLY_AT_DAY_AND_TIME_METHOD isEqualToString:call.method]) {
         [self showNotification:call result:result];
     } else if([CANCEL_METHOD isEqualToString:call.method]) {
         [self cancelNotification:call result:result];
@@ -390,8 +428,8 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
     }
 }
 
-- (NSDictionary*)buildUserDict:(NSNumber *)id title:(NSString *)title presentAlert:(bool)presentAlert presentSound:(bool)presentSound presentBadge:(bool)presentBadge payload:(NSString *)payload firstActionTitle:(NSString *)firstActionTitle secondActionTitle:(NSString *)secondActionTitle thirdActionTitle:(NSString*)thirdActionTitle firstActionPayload:(NSString *)firstActionPayload secondActionPayload:(NSString*)secondActionPayload thirdActionPayload:(NSString*)thirdActionPayload {
-    NSDictionary *userDict =[NSDictionary dictionaryWithObjectsAndKeys:id, NOTIFICATION_ID, title, TITLE, [NSNumber numberWithBool:presentAlert], PRESENT_ALERT, [NSNumber numberWithBool:presentSound], PRESENT_SOUND, [NSNumber numberWithBool:presentBadge], PRESENT_BADGE, payload, PAYLOAD, firstActionTitle, FIRST_ACTION_TITLE, secondActionTitle, SECOND_ACTION_TITLE, thirdActionTitle,THIRD_ACTION_TITLE, firstActionPayload, FIRST_ACTION_PAYLOAD, secondActionPayload, SECOND_ACTION_PAYLOAD, thirdActionPayload, THIRD_ACTION_PAYLOAD, nil];
+- (NSDictionary*)buildUserDict:(NSNumber *)id title:(NSString *)title presentAlert:(bool)presentAlert presentSound:(bool)presentSound presentBadge:(bool)presentBadge payload:(NSString *)payload firstActionTitle:(NSString *)firstActionTitle secondActionTitle:(NSString *)secondActionTitle thirdActionTitle:(NSString*)thirdActionTitle firstActionPayload:(NSString *)firstActionPayload secondActionPayload:(NSString*)secondActionPayload thirdActionPayload:(NSString*)thirdActionPayload latitude:(NSNumber*)latitude longitude:(NSNumber*)longitude radius:(NSNumber*)radius notifyOnEntry:(bool)notifyOnEntry notifyOnExit:(bool)notifyOnExit {
+    NSDictionary *userDict =[NSDictionary dictionaryWithObjectsAndKeys:id, NOTIFICATION_ID, title, TITLE, [NSNumber numberWithBool:presentAlert], PRESENT_ALERT, [NSNumber numberWithBool:presentSound], PRESENT_SOUND, [NSNumber numberWithBool:presentBadge], PRESENT_BADGE, payload, PAYLOAD, firstActionTitle, FIRST_ACTION_TITLE, secondActionTitle, SECOND_ACTION_TITLE, thirdActionTitle,THIRD_ACTION_TITLE, firstActionPayload, FIRST_ACTION_PAYLOAD, secondActionPayload, SECOND_ACTION_PAYLOAD, thirdActionPayload, THIRD_ACTION_PAYLOAD, latitude, LATITUDE, longitude, LONGITUDE, radius, RADIUS, [NSNumber numberWithBool:notifyOnEntry], NOTIFY_ON_ENTRY, [NSNumber numberWithBool:notifyOnExit], NOTIFY_ON_EXIT, nil];
     return userDict;
 }
 
@@ -408,7 +446,7 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
             content.sound = [UNNotificationSound soundNamed:notificationDetails.sound];
         }
     }
-    content.userInfo = [self buildUserDict:notificationDetails.id title:notificationDetails.title presentAlert:notificationDetails.presentAlert presentSound:notificationDetails.presentSound presentBadge:notificationDetails.presentBadge payload:notificationDetails.payload firstActionTitle:notificationDetails.firstActionTitle secondActionTitle:notificationDetails.secondActionTitle thirdActionTitle:notificationDetails.thirdActionTitle firstActionPayload:notificationDetails.firstActionPayload secondActionPayload:notificationDetails.secondActionPayload thirdActionPayload:notificationDetails.thirdActionPayload];
+    content.userInfo = [self buildUserDict:notificationDetails.id title:notificationDetails.title presentAlert:notificationDetails.presentAlert presentSound:notificationDetails.presentSound presentBadge:notificationDetails.presentBadge payload:notificationDetails.payload firstActionTitle:notificationDetails.firstActionTitle secondActionTitle:notificationDetails.secondActionTitle thirdActionTitle:notificationDetails.thirdActionTitle firstActionPayload:notificationDetails.firstActionPayload secondActionPayload:notificationDetails.secondActionPayload thirdActionPayload:notificationDetails.thirdActionPayload latitude:notificationDetails.latitude longitude:notificationDetails.longitude radius:notificationDetails.radius notifyOnEntry:notificationDetails.notifyOnEntry notifyOnExit:notificationDetails.notifyOnExit];
     if(notificationDetails.secondsSinceEpoch == nil) {
         NSTimeInterval timeInterval = 0.1;
         Boolean repeats = NO;
@@ -429,7 +467,29 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
             }
             repeats = YES;
         }
-        if (notificationDetails.repeatTime != nil) {
+        if (notificationDetails.latitude != nil) {
+//            CLLocationCoordinate2D center = CLLocationCoordinate2DMake(notificationDetails.latitude.doubleValue, notificationDetails.longitude.doubleValue);
+//            CLCircularRegion* region = [[CLCircularRegion alloc] initWithCenter:center radius:notificationDetails.radius.doubleValue identifier:notificationDetails.id.stringValue];
+//            region.notifyOnEntry = notificationDetails.notifyOnEntry;
+//            region.notifyOnExit = notificationDetails.notifyOnExit;
+//            trigger = [UNLocationNotificationTrigger triggerWithRegion:region repeats:YES];
+            CLLocationCoordinate2D point = CLLocationCoordinate2DMake(37.335400, -122.009201);
+            CLCircularRegion* region = [[CLCircularRegion alloc] initWithCenter:point
+                             radius:2000.0 identifier:@"Headquarters"];
+            region.notifyOnEntry = YES;
+            region.notifyOnExit = NO;
+            UNLocationNotificationTrigger* trigger = [UNLocationNotificationTrigger
+                             triggerWithRegion:region repeats:YES];
+            UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:[notificationDetails.id stringValue] content:content trigger:trigger];
+            UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+            [center addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
+                if (error != nil) {
+                    NSLog(@"Unable to Add Notification Request");
+                }
+            }];
+            return;
+        }
+        else if (notificationDetails.repeatTime != nil) {
             NSCalendar *calendar = [[NSCalendar alloc] initWithCalendarIdentifier: NSCalendarIdentifierGregorian];
             NSDateComponents *dateComponents = [[NSDateComponents alloc] init];
             [dateComponents setCalendar:calendar];
@@ -481,7 +541,7 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
         }
     }
     
-    notification.userInfo = [self buildUserDict:notificationDetails.id title:notificationDetails.title presentAlert:notificationDetails.presentAlert presentSound:notificationDetails.presentSound presentBadge:notificationDetails.presentBadge payload:notificationDetails.payload firstActionTitle:notificationDetails.firstActionTitle secondActionTitle:notificationDetails.secondActionTitle thirdActionTitle:notificationDetails.thirdActionTitle firstActionPayload:notificationDetails.firstActionPayload secondActionPayload:notificationDetails.secondActionPayload thirdActionPayload:notificationDetails.thirdActionPayload];
+    notification.userInfo = [self buildUserDict:notificationDetails.id title:notificationDetails.title presentAlert:notificationDetails.presentAlert presentSound:notificationDetails.presentSound presentBadge:notificationDetails.presentBadge payload:notificationDetails.payload firstActionTitle:notificationDetails.firstActionTitle secondActionTitle:notificationDetails.secondActionTitle thirdActionTitle:notificationDetails.thirdActionTitle firstActionPayload:notificationDetails.firstActionPayload secondActionPayload:notificationDetails.secondActionPayload thirdActionPayload:notificationDetails.thirdActionPayload latitude:notificationDetails.latitude longitude:notificationDetails.longitude radius:notificationDetails.radius notifyOnEntry:notificationDetails.notifyOnEntry notifyOnExit:notificationDetails.notifyOnExit];
     if(notificationDetails.secondsSinceEpoch == nil) {
         if(notificationDetails.repeatInterval != nil) {
             NSTimeInterval timeInterval = 0;
