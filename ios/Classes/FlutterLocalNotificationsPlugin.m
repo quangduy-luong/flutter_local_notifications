@@ -251,7 +251,7 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
     NSMutableArray<UNNotificationAction *> *actions = [NSMutableArray new];
     if ([categoryDict[FIRST_ACTION_TITLE] length] > 0) {
         UNNotificationActionOptions option = UNNotificationActionOptionForeground;
-        if ([Utils stringIsNumeric:categoryDict[FIRST_ACTION_PAYLOAD]]) {
+        if ([Utils stringIsNumeric:categoryDict[FIRST_ACTION_PAYLOAD]] || [categoryDict[FIRST_ACTION_PAYLOAD] isEqualToString:REMIND_AT_LOCATION]) {
             option = UNNotificationActionOptionNone;
         }
         UNNotificationAction* firstAction = [UNNotificationAction
@@ -263,7 +263,7 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
     
     if ([categoryDict[SECOND_ACTION_TITLE] length] > 0) {
         UNNotificationActionOptions option = UNNotificationActionOptionForeground;
-        if ([Utils stringIsNumeric:categoryDict[SECOND_ACTION_PAYLOAD]]) {
+        if ([Utils stringIsNumeric:categoryDict[SECOND_ACTION_PAYLOAD]] || [categoryDict[SECOND_ACTION_PAYLOAD] isEqualToString:REMIND_AT_LOCATION]) {
             option = UNNotificationActionOptionNone;
         }
         UNNotificationAction* secondAction = [UNNotificationAction
@@ -275,7 +275,7 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
     
     if ([categoryDict[THIRD_ACTION_TITLE] length] > 0) {
         UNNotificationActionOptions option = UNNotificationActionOptionForeground;
-        if ([Utils stringIsNumeric:categoryDict[THIRD_ACTION_PAYLOAD]]) {
+        if ([Utils stringIsNumeric:categoryDict[THIRD_ACTION_PAYLOAD]] || [categoryDict[THIRD_ACTION_PAYLOAD] isEqualToString:REMIND_AT_LOCATION]) {
             option = UNNotificationActionOptionNone;
         }
         UNNotificationAction* thirdAction = [UNNotificationAction
@@ -468,18 +468,11 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
             repeats = YES;
         }
         if (notificationDetails.latitude != nil) {
-//            CLLocationCoordinate2D center = CLLocationCoordinate2DMake(notificationDetails.latitude.doubleValue, notificationDetails.longitude.doubleValue);
-//            CLCircularRegion* region = [[CLCircularRegion alloc] initWithCenter:center radius:notificationDetails.radius.doubleValue identifier:notificationDetails.id.stringValue];
-//            region.notifyOnEntry = notificationDetails.notifyOnEntry;
-//            region.notifyOnExit = notificationDetails.notifyOnExit;
-//            trigger = [UNLocationNotificationTrigger triggerWithRegion:region repeats:YES];
-            CLLocationCoordinate2D point = CLLocationCoordinate2DMake(37.335400, -122.009201);
-            CLCircularRegion* region = [[CLCircularRegion alloc] initWithCenter:point
-                             radius:2000.0 identifier:@"Headquarters"];
-            region.notifyOnEntry = YES;
-            region.notifyOnExit = NO;
-            UNLocationNotificationTrigger* trigger = [UNLocationNotificationTrigger
-                             triggerWithRegion:region repeats:YES];
+            CLLocationCoordinate2D point = CLLocationCoordinate2DMake(notificationDetails.latitude.doubleValue, notificationDetails.longitude.doubleValue);
+            CLCircularRegion* region = [[CLCircularRegion alloc] initWithCenter:point radius:notificationDetails.radius.doubleValue identifier:notificationDetails.id.stringValue];
+            region.notifyOnEntry = notificationDetails.notifyOnEntry;
+            region.notifyOnExit = notificationDetails.notifyOnExit;
+            trigger = [UNLocationNotificationTrigger triggerWithRegion:region repeats:NO];
             UNNotificationRequest *request = [UNNotificationRequest requestWithIdentifier:[notificationDetails.id stringValue] content:content trigger:trigger];
             UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
             [center addNotificationRequest:request withCompletionHandler:^(NSError * _Nullable error) {
@@ -656,6 +649,14 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
                 NSLog(@"Unable to Add Notification Request");
             }
         }];
+    } else if ([REMIND_AT_LOCATION isEqualToString:payload]) {
+      UNNotificationRequest *notificationRequest = response.notification.request;
+      UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+      [center addNotificationRequest:notificationRequest withCompletionHandler:^(NSError * _Nullable error) {
+          if (error != nil) {
+              NSLog(@"Unable to Add Notification Request");
+          }
+      }];
     } else {
         if(initialized) {
             [self handleSelectNotification:payload];
