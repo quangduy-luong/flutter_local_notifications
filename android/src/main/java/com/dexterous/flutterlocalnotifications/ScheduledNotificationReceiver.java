@@ -41,7 +41,7 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
                 Log.d("GEOFENCE", "ERROR: " + event.getErrorCode());
             }
             List<Geofence> triggeredGeofences = event.getTriggeringGeofences();
-            ArrayList<String> toRemove = new ArrayList<>();
+            final ArrayList<String> toRemove = new ArrayList<>();
             for (Geofence geofence : triggeredGeofences) {
                 toRemove.add(geofence.getRequestId());
             }
@@ -49,7 +49,7 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
             client.removeGeofences(toRemove).addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) {
-                    Log.d("GEOFENCE", "Geofence was removed");
+                    Log.d("GEOFENCE", "Geofences removed: " + toRemove);
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override

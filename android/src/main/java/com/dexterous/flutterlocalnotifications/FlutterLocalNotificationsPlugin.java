@@ -357,6 +357,7 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
         Geofence geofence = builder.build();
 
         GeofencingRequest request = new GeofencingRequest.Builder()
+                .setInitialTrigger(0)
                 .addGeofence(geofence)
                 .build();
 
