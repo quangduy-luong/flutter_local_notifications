@@ -759,7 +759,6 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
     public void onMethodCall(MethodCall call, Result result) {
         switch (call.method) {
             case INITIALIZE_METHOD: {
-                // initializeHeadlessService(call, result);
                 initialize(call, result);
                 break;
             }
