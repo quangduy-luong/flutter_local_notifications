@@ -131,7 +131,6 @@ typedef NS_ENUM(NSInteger, RepeatInterval) {
                     pendingNotificationRequest[PAYLOAD] = request.content.userInfo[PAYLOAD];
                 }
                 [pendingNotificationRequests addObject:pendingNotificationRequest];
-                NSLog(@"%@", request);
             }
             result(pendingNotificationRequests);
         }];
