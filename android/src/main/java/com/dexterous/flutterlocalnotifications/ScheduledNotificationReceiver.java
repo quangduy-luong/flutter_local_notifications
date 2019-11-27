@@ -58,18 +58,35 @@ public class ScheduledNotificationReceiver extends BroadcastReceiver {
                     Log.d("GEOFENCE", e.getMessage());
                 }
             });
-        }
 
-        Gson gson = FlutterLocalNotificationsPlugin.buildGson();
-        Type type = new TypeToken<NotificationDetails>() {
-        }.getType();
-        NotificationDetails notificationDetails  = gson.fromJson(notificationDetailsJson, type);
-        FlutterLocalNotificationsPlugin.showNotification(context, notificationDetails);
-        if (repeat) {
-            return;
-        }
-        FlutterLocalNotificationsPlugin.removeNotificationFromCache(notificationDetails.id, context);
+            Log.d("GEOFENCE", "Details were" + notificationDetailsJson);
+            
+            List<NotificationDetails> detailsList  = FlutterLocalNotificationsPlugin.loadScheduledNotifications(context);
+            for (String identifier : toRemove) {
+                for (NotificationDetails details : detailsList) {
+                    if (details.id.toString().equals(identifier)) {
+                        // remove the triggered geofences and display their notification
+                        FlutterLocalNotificationsPlugin.showNotification(context, details);
+                        if (repeat) {
+                            return;
+                        }
+                        FlutterLocalNotificationsPlugin.removeNotificationFromCache(details.id, context);
+                    }
+                }
+            }
 
+            Log.d("GEOFENCE", "Removing multiple geofences & showing notifications");
+        } else {
+            Gson gson = FlutterLocalNotificationsPlugin.buildGson();
+            Type type = new TypeToken<NotificationDetails>() {
+            }.getType();
+            NotificationDetails notificationDetails  = gson.fromJson(notificationDetailsJson, type);
+            FlutterLocalNotificationsPlugin.showNotification(context, notificationDetails);
+            if (repeat) {
+                return;
+            }
+            FlutterLocalNotificationsPlugin.removeNotificationFromCache(notificationDetails.id, context);
+        }
     }
 
 }

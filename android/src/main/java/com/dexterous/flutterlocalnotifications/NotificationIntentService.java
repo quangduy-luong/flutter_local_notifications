@@ -76,10 +76,10 @@ public class NotificationIntentService extends IntentService {
 
                     Intent locationIntent = new Intent(this, ScheduledNotificationReceiver.class);
                     locationIntent.setAction(FlutterLocalNotificationsPlugin.REMIND_AT_LOCATION);
-                    locationIntent.putExtra(FlutterLocalNotificationsPlugin.NOTIFICATION_ID, details.id);
+                    locationIntent.putExtra(FlutterLocalNotificationsPlugin.NOTIFICATION_ID, FlutterLocalNotificationsPlugin.GEOFENCING_REQUEST_CODE);
                     locationIntent.putExtra(FlutterLocalNotificationsPlugin.PAYLOAD, details.payload);
                     locationIntent.putExtra(FlutterLocalNotificationsPlugin.NOTIFICATION_DETAILS, json);
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(this, details.id, locationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(this, FlutterLocalNotificationsPlugin.GEOFENCING_REQUEST_CODE, locationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
                     int transition = Geofence.GEOFENCE_TRANSITION_ENTER;
                     if (details.notifyOnEntry && details.notifyOnExit) {
@@ -91,13 +91,13 @@ public class NotificationIntentService extends IntentService {
                     GeofencingClient geofencingClient = LocationServices.getGeofencingClient(this);
                     Geofence.Builder builder = new Geofence.Builder();
                     builder.setRequestId(details.id.toString())
-                            .setCircularRegion(details.latitude, details.longitude, 200.0f)
+                            .setCircularRegion(details.latitude, details.longitude, details.radius.floatValue())
                             .setExpirationDuration(Geofence.NEVER_EXPIRE)
                             .setTransitionTypes(transition);
                     Geofence geofence = builder.build();
 
                     GeofencingRequest request = new GeofencingRequest.Builder()
-                            .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                            .setInitialTrigger(0)
                             .addGeofence(geofence)
                             .build();
 

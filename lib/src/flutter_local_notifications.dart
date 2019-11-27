@@ -63,13 +63,13 @@ class Time {
 }
 
 /// A category for notification actions.
-/// 
+///
 /// For `snooze` actions: the payload should be the number of seconds to
 /// snooze the notification for.
-/// 
+///
 /// For `geofence` actions: to reschedule the same geofence, the payload
 /// must be exactly `remindAtLocation`.
-/// 
+///
 /// For `payload` actions: to simply pass a payload back to the app,
 /// the payload must not be numeric only or match `remindAtLocation`.
 class NotificationCategory {
@@ -137,6 +137,40 @@ class NotificationCategory {
   }
 }
 
+class LocationNotificationInfo {
+  final int id;
+  final String title;
+  final String body;
+  final String payload;
+  final double latitude;
+  final double longitude;
+  final double radius;
+  final bool notifyOnEntry;
+  final bool notifyOnExit;
+  final String firstActionPayload;
+  final String secondActionPayload;
+  final String thirdActionPayload;
+
+  LocationNotificationInfo({
+    @required this.id,
+    @required this.title,
+    @required this.body,
+    this.payload,
+    @required this.latitude,
+    @required this.longitude,
+    this.radius = 100.0,
+    this.notifyOnEntry = true,
+    this.notifyOnExit = false,
+    this.firstActionPayload,
+    this.secondActionPayload,
+    this.thirdActionPayload,
+  })  : assert(id != null),
+        assert(title != null),
+        assert(body != null),
+        assert(latitude != null),
+        assert(longitude != null);
+}
+
 class FlutterLocalNotificationsPlugin {
   factory FlutterLocalNotificationsPlugin() => _instance;
 
@@ -197,7 +231,11 @@ class FlutterLocalNotificationsPlugin {
   /// Show a notification with an optional payload that will be passed back to the app when a notification is tapped
   Future<void> show(int id, String title, String body,
       NotificationDetails notificationDetails,
-      {String payload, String categoryIdentifier}) async {
+      {String payload,
+      String categoryIdentifier,
+      String firstActionPayload,
+      String secondActionPayload,
+      String thirdActionPayload}) async {
     _validateId(id);
     var category = _categories.firstWhere(
         (c) => c.identifier == categoryIdentifier,
@@ -214,9 +252,10 @@ class FlutterLocalNotificationsPlugin {
       'firstActionTitle': category.firstActionTitle,
       'secondActionTitle': category.secondActionTitle,
       'thirdActionTitle': category.thirdActionTitle,
-      'firstActionPayload': category.firstActionPayload,
-      'secondActionPayload': category.secondActionPayload,
-      'thirdActionPayload': category.thirdActionPayload,
+      'firstActionPayload': firstActionPayload ?? category.firstActionPayload,
+      'secondActionPayload':
+          secondActionPayload ?? category.secondActionPayload,
+      'thirdActionPayload': thirdActionPayload ?? category.thirdActionPayload,
     });
   }
 
@@ -234,16 +273,14 @@ class FlutterLocalNotificationsPlugin {
   /// Schedules a notification to be shown at the specified time with an optional payload that is passed through when a notification is tapped
   /// The [androidAllowWhileIdle] parameter is Android-specific and determines if the notification should still be shown at the specified time
   /// even when in a low-power idle mode.
-  Future<void> schedule(
-    int id,
-    String title,
-    String body,
-    DateTime scheduledDate,
-    NotificationDetails notificationDetails, {
-    String payload,
-    bool androidAllowWhileIdle = false,
-    String categoryIdentifier,
-  }) async {
+  Future<void> schedule(int id, String title, String body,
+      DateTime scheduledDate, NotificationDetails notificationDetails,
+      {String payload,
+      bool androidAllowWhileIdle = false,
+      String categoryIdentifier,
+      String firstActionPayload,
+      String secondActionPayload,
+      String thirdActionPayload}) async {
     _validateId(id);
     var category = _categories.firstWhere(
         (c) => c.identifier == categoryIdentifier,
@@ -264,9 +301,10 @@ class FlutterLocalNotificationsPlugin {
       'firstActionTitle': category.firstActionTitle,
       'secondActionTitle': category.secondActionTitle,
       'thirdActionTitle': category.thirdActionTitle,
-      'firstActionPayload': category.firstActionPayload,
-      'secondActionPayload': category.secondActionPayload,
-      'thirdActionPayload': category.thirdActionPayload,
+      'firstActionPayload': firstActionPayload ?? category.firstActionPayload,
+      'secondActionPayload':
+          secondActionPayload ?? category.secondActionPayload,
+      'thirdActionPayload': thirdActionPayload ?? category.thirdActionPayload,
     });
   }
 
@@ -274,7 +312,11 @@ class FlutterLocalNotificationsPlugin {
   /// For example, specifying a hourly interval means the first time the notification will be an hour after the method has been called and then every hour after that.
   Future<void> periodicallyShow(int id, String title, String body,
       RepeatInterval repeatInterval, NotificationDetails notificationDetails,
-      {String payload, String categoryIdentifier}) async {
+      {String payload,
+      String categoryIdentifier,
+      String firstActionPayload,
+      String secondActionPayload,
+      String thirdActionPayload}) async {
     _validateId(id);
     var category = _categories.firstWhere(
         (c) => c.identifier == categoryIdentifier,
@@ -293,16 +335,21 @@ class FlutterLocalNotificationsPlugin {
       'firstActionTitle': category.firstActionTitle,
       'secondActionTitle': category.secondActionTitle,
       'thirdActionTitle': category.thirdActionTitle,
-      'firstActionPayload': category.firstActionPayload,
-      'secondActionPayload': category.secondActionPayload,
-      'thirdActionPayload': category.thirdActionPayload,
+      'firstActionPayload': firstActionPayload ?? category.firstActionPayload,
+      'secondActionPayload':
+          secondActionPayload ?? category.secondActionPayload,
+      'thirdActionPayload': thirdActionPayload ?? category.thirdActionPayload,
     });
   }
 
   /// Shows a notification on a daily interval at the specified time
   Future<void> showDailyAtTime(int id, String title, String body,
       Time notificationTime, NotificationDetails notificationDetails,
-      {String payload, String categoryIdentifier}) async {
+      {String payload,
+      String categoryIdentifier,
+      String firstActionPayload,
+      String secondActionPayload,
+      String thirdActionPayload}) async {
     _validateId(id);
     var category = _categories.firstWhere(
         (c) => c.identifier == categoryIdentifier,
@@ -322,16 +369,21 @@ class FlutterLocalNotificationsPlugin {
       'firstActionTitle': category.firstActionTitle,
       'secondActionTitle': category.secondActionTitle,
       'thirdActionTitle': category.thirdActionTitle,
-      'firstActionPayload': category.firstActionPayload,
-      'secondActionPayload': category.secondActionPayload,
-      'thirdActionPayload': category.thirdActionPayload,
+      'firstActionPayload': firstActionPayload ?? category.firstActionPayload,
+      'secondActionPayload':
+          secondActionPayload ?? category.secondActionPayload,
+      'thirdActionPayload': thirdActionPayload ?? category.thirdActionPayload,
     });
   }
 
   /// Shows a notification on a daily interval at the specified time
   Future<void> showWeeklyAtDayAndTime(int id, String title, String body,
       Day day, Time notificationTime, NotificationDetails notificationDetails,
-      {String payload, String categoryIdentifier}) async {
+      {String payload,
+      String categoryIdentifier,
+      String firstActionPayload,
+      String secondActionPayload,
+      String thirdActionPayload}) async {
     _validateId(id);
     var category = _categories.firstWhere(
         (c) => c.identifier == categoryIdentifier,
@@ -352,49 +404,93 @@ class FlutterLocalNotificationsPlugin {
       'firstActionTitle': category.firstActionTitle,
       'secondActionTitle': category.secondActionTitle,
       'thirdActionTitle': category.thirdActionTitle,
-      'firstActionPayload': category.firstActionPayload,
-      'secondActionPayload': category.secondActionPayload,
-      'thirdActionPayload': category.thirdActionPayload,
+      'firstActionPayload': firstActionPayload ?? category.firstActionPayload,
+      'secondActionPayload':
+          secondActionPayload ?? category.secondActionPayload,
+      'thirdActionPayload': thirdActionPayload ?? category.thirdActionPayload,
     });
   }
 
-  Future<void> showAtLocation(
-    int id,
-    String title,
-    String body,
-    NotificationDetails notificationDetails,
-    double latitude,
-    double longitude, {
-    double radius = 100.0,
-    bool notifyOnEntry = true,
-    bool notifyOnExit = false,
-    String payload,
-    String categoryIdentifier,
-  }) async {
-    _validateId(id);
+  Future<void> showAtLocations(List<LocationNotificationInfo> notifications,
+      {String categoryIdentifier,
+      NotificationDetails notificationDetails}) async {
+    if (_platform.isIOS) {
+      for (var notification in notifications) {
+        await _showAtLocation(
+          notification,
+          categoryIdentifier: categoryIdentifier,
+          notificationDetails: notificationDetails,
+        );
+      }
+    } else {
+      var category = _categories.firstWhere(
+          (c) => c.identifier == categoryIdentifier,
+          orElse: () => _categories.first);
+      var serializedPlatformSpecifics =
+          _retrievePlatformSpecificNotificationDetails(notificationDetails);
+      await _channel.invokeMethod(
+        'showAtLocation',
+        notifications
+            .map((info) {
+              return <String, dynamic>{
+                'id': info.id,
+                'title': info.title,
+                'body': info.body,
+                'platformSpecifics': serializedPlatformSpecifics,
+                'payload': info.payload ?? '',
+                'category': category.identifier,
+                'firstActionTitle': category.firstActionTitle,
+                'secondActionTitle': category.secondActionTitle,
+                'thirdActionTitle': category.thirdActionTitle,
+                'firstActionPayload':
+                    info.firstActionPayload ?? category.firstActionPayload,
+                'secondActionPayload':
+                    info.secondActionPayload ?? category.secondActionPayload,
+                'thirdActionPayload':
+                    info.thirdActionPayload ?? category.thirdActionPayload,
+                'latitude': info.latitude,
+                'longitude': info.longitude,
+                'radius': info.radius,
+                'notifyOnEntry': info.notifyOnEntry,
+                'notifyOnExit': info.notifyOnExit,
+              };
+            })
+            .toList()
+            .cast<Map<String, dynamic>>(),
+      );
+    }
+  }
+
+  Future<void> _showAtLocation(LocationNotificationInfo info,
+      {NotificationDetails notificationDetails,
+      String categoryIdentifier}) async {
+    _validateId(info.id);
     var category = _categories.firstWhere(
         (c) => c.identifier == categoryIdentifier,
         orElse: () => _categories.first);
     var serializedPlatformSpecifics =
         _retrievePlatformSpecificNotificationDetails(notificationDetails);
     await _channel.invokeMethod('showAtLocation', <String, dynamic>{
-      'id': id,
-      'title': title,
-      'body': body,
+      'id': info.id,
+      'title': info.title,
+      'body': info.body,
       'platformSpecifics': serializedPlatformSpecifics,
-      'payload': payload ?? '',
+      'payload': info.payload ?? '',
       'category': category.identifier,
       'firstActionTitle': category.firstActionTitle,
       'secondActionTitle': category.secondActionTitle,
       'thirdActionTitle': category.thirdActionTitle,
-      'firstActionPayload': category.firstActionPayload,
-      'secondActionPayload': category.secondActionPayload,
-      'thirdActionPayload': category.thirdActionPayload,
-      'latitude': latitude,
-      'longitude': longitude,
-      'radius': radius,
-      'notifyOnEntry': notifyOnEntry,
-      'notifyOnExit': notifyOnExit,
+      'firstActionPayload':
+          info.firstActionPayload ?? category.firstActionPayload,
+      'secondActionPayload':
+          info.secondActionPayload ?? category.secondActionPayload,
+      'thirdActionPayload':
+          info.thirdActionPayload ?? category.thirdActionPayload,
+      'latitude': info.latitude,
+      'longitude': info.longitude,
+      'radius': info.radius,
+      'notifyOnEntry': info.notifyOnEntry,
+      'notifyOnExit': info.notifyOnExit,
     });
   }
 

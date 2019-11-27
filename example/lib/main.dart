@@ -360,12 +360,20 @@ class _HomePageState extends State<HomePage> {
     var iOSPlatformChannelSpecifics = IOSNotificationDetails();
     var platformChannelSpecifics = NotificationDetails(
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.showAtLocation(
-        20, 'plain title', 'plain body', platformChannelSpecifics, lat, lng,
-        payload: 'item x',
-        notifyOnEntry: true,
-        notifyOnExit: false,
-        categoryIdentifier: 'location');
+    await flutterLocalNotificationsPlugin.showAtLocations(
+      [
+        LocationNotificationInfo(
+          id: 20,
+          title: 'Testing location',
+          body: '$lat, $lng',
+          latitude: lat,
+          longitude: lng,
+          payload: 'location payload',
+        )
+      ],
+      notificationDetails: platformChannelSpecifics,
+      categoryIdentifier: 'location',
+    );
   }
 
   Future<void> _showDefaultSnoozeNotification() async {
