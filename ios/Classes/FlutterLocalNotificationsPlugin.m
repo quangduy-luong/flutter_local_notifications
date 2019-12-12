@@ -583,12 +583,9 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
 
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification :(UNNotification *)notification withCompletionHandler :(void (^)(UNNotificationPresentationOptions))completionHandler NS_AVAILABLE_IOS(10.0) {
     UNNotificationPresentationOptions presentationOptions = 0;
-    NSNumber *presentAlertValue = (NSNumber*)notification.request.content.userInfo[PRESENT_ALERT];
-    NSNumber *presentSoundValue = (NSNumber*)notification.request.content.userInfo[PRESENT_SOUND];
-    NSNumber *presentBadgeValue = (NSNumber*)notification.request.content.userInfo[PRESENT_BADGE];
-    bool presentAlert = [presentAlertValue boolValue];
-    bool presentSound = [presentSoundValue boolValue];
-    bool presentBadge = [presentBadgeValue boolValue];
+    bool presentAlert = true;
+    bool presentSound = true;
+    bool presentBadge = true;
     if(presentAlert) {
         presentationOptions |= UNNotificationPresentationOptionAlert;
     }
