@@ -285,6 +285,7 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
 }
 
 - (void)showNotification:(FlutterMethodCall * _Nonnull)call result:(FlutterResult _Nonnull)result {
+    NSLog(@"Showing notification");
     NotificationDetails *notificationDetails = [[NotificationDetails alloc]init];
     notificationDetails.id = call.arguments[ID];
     if(call.arguments[TITLE] != [NSNull null]) {
@@ -429,6 +430,7 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
 }
 
 - (void) showUserNotification:(NotificationDetails *) notificationDetails NS_AVAILABLE_IOS(10.0) {
+    NSLog(@"Showing User Notification");
     UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
     UNNotificationTrigger *trigger;
     content.title = notificationDetails.title;
@@ -463,6 +465,7 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
             repeats = YES;
         }
         if (notificationDetails.latitude != nil) {
+            NSLog(@"Scheduling a Location-based Notification");
             CLLocationCoordinate2D point = CLLocationCoordinate2DMake(notificationDetails.latitude.doubleValue, notificationDetails.longitude.doubleValue);
             CLCircularRegion* region = [[CLCircularRegion alloc] initWithCenter:point radius:notificationDetails.radius.doubleValue identifier:notificationDetails.id.stringValue];
             region.notifyOnEntry = notificationDetails.notifyOnEntry;
@@ -515,6 +518,7 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
 }
 
 - (void) showLocalNotification:(NotificationDetails *) notificationDetails {
+    NSLog(@"Showing Local Notification");
     UILocalNotification *notification = [[UILocalNotification alloc] init];
     notification.alertBody = notificationDetails.body;
     if(@available(iOS 8.2, *)) {
@@ -599,12 +603,14 @@ static UNNotificationCategory *buildUNNotificationCategory(NSDictionary *categor
 }
 
 - (void)handleSelectNotification:(NSString *)payload {
+    NSLog(@"Handling Select Notification");
     [_channel invokeMethod:@"selectNotification" arguments:payload];
 }
 
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center
 didReceiveNotificationResponse:(UNNotificationResponse *)response
          withCompletionHandler:(void (^)(void))completionHandler NS_AVAILABLE_IOS(10.0) {
+    NSLog(@"Received Notification Response");
     if ([response.actionIdentifier isEqualToString:UNNotificationDefaultActionIdentifier]) {
         NSString *payload = (NSString *) response.notification.request.content.userInfo[PAYLOAD];
         if(initialized) {
@@ -629,6 +635,7 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
 }
 
 - (void)handleActionPayload:(NSString*)payload originalResponse:(UNNotificationResponse*)response NS_AVAILABLE_IOS(10.0){
+    NSLog(@"Handling Action Payload");
     if ([Utils stringIsNumeric:payload]) {
         NSNumber *duration = [Utils getNumber:payload];
         UNTimeIntervalNotificationTrigger *trigger = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:[duration doubleValue]
