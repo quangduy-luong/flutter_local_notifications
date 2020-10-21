@@ -15,3 +15,5 @@ pubspec.lock
 doc/api/
 
 ios/.generated/
+example/.flutter-plugins-dependencies
+example/.dart_tool/package_config.json

@@ -2,7 +2,7 @@
 #import <UserNotifications/UserNotifications.h>
 #import <CoreLocation/CoreLocation.h>
 
-@interface FlutterLocalNotificationsPlugin : NSObject <FlutterPlugin, UNUserNotificationCenterDelegate> {
+@interface FlutterLocalNotificationsPlugin : NSObject <FlutterPlugin> {
     CLLocationManager *locationManager;
 }
 @end
