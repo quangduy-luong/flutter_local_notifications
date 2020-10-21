@@ -82,7 +82,9 @@ public class NotificationIntentService extends IntentService {
                     PendingIntent pendingIntent = PendingIntent.getBroadcast(this, FlutterLocalNotificationsPlugin.GEOFENCING_REQUEST_CODE, locationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
                     int transition = Geofence.GEOFENCE_TRANSITION_ENTER;
-                    if (details.notifyOnEntry && details.notifyOnExit) {
+                    if (details.notifyOnEntry == null || details.notifyOnExit == null) {
+                        transition = Geofence.GEOFENCE_TRANSITION_EXIT;
+                    } else if (details.notifyOnEntry && details.notifyOnExit) {
                         transition = Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT;
                     } else if (details.notifyOnExit) {
                         transition = Geofence.GEOFENCE_TRANSITION_EXIT;
