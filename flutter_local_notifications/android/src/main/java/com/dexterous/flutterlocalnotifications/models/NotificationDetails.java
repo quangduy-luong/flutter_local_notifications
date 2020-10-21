@@ -113,6 +113,18 @@ public class NotificationDetails {
     private static final String FULL_SCREEN_INTENT = "fullScreenIntent";
     private static final String SHORTCUT_ID = "shortcutId";
 
+    public static final String FIRST_ACTION_TITLE = "firstActionTitle";
+    public static final String SECOND_ACTION_TITLE = "secondActionTitle";
+    public static final String THIRD_ACTION_TITLE = "thirdActionTitle";
+    public static final String FIRST_ACTION_PAYLOAD = "firstActionPayload";
+    public static final String SECOND_ACTION_PAYLOAD = "secondActionPayload";
+    public static final String THIRD_ACTION_PAYLOAD = "thirdActionPayload";
+    public static final String LATITUDE = "latitude";
+    public static final String LONGITUDE = "longitude";
+    public static final String RADIUS = "radius";
+    public static final String NOTIFY_ON_ENTRY = "notifyOnEntry";
+    public static final String NOTIFY_ON_EXIT = "notifyOnExit";
+
 
     public Integer id;
     public String title;
@@ -170,6 +182,18 @@ public class NotificationDetails {
     public Boolean fullScreenIntent;
     public String shortcutId;
 
+    public String firstActionTitle;
+    public String secondActionTitle;
+    public String thirdActionTitle;
+    public String firstActionPayload;
+    public String secondActionPayload;
+    public String thirdActionPayload;
+    public Double latitude;
+    public Double longitude;
+    public Double radius;
+    public Boolean notifyOnEntry;
+    public Boolean notifyOnExit;
+
 
 
     // Note: this is set on the Android to save details about the icon that should be used when re-hydrating scheduled notifications when a device has been restarted.
@@ -183,6 +207,18 @@ public class NotificationDetails {
         notificationDetails.body = (String) arguments.get(BODY);
         notificationDetails.scheduledDateTime = (String) arguments.get(SCHEDULED_DATE_TIME);
         notificationDetails.timeZoneName = (String) arguments.get(TIME_ZONE_NAME);
+        notificationDetails.category = (String) arguments.get(CATEGORY);
+        notificationDetails.firstActionTitle = (String) arguments.get(FIRST_ACTION_TITLE);
+        notificationDetails.secondActionTitle = (String) arguments.get(SECOND_ACTION_TITLE);
+        notificationDetails.thirdActionTitle = (String) arguments.get(THIRD_ACTION_TITLE);
+        notificationDetails.firstActionPayload = (String) arguments.get(FIRST_ACTION_PAYLOAD);
+        notificationDetails.secondActionPayload = (String) arguments.get(SECOND_ACTION_PAYLOAD);
+        notificationDetails.thirdActionPayload = (String) arguments.get(THIRD_ACTION_PAYLOAD);
+        notificationDetails.latitude = (Double) arguments.get(LATITUDE);
+        notificationDetails.longitude = (Double) arguments.get(LONGITUDE);
+        notificationDetails.radius = (Double) arguments.get(RADIUS);
+        notificationDetails.notifyOnEntry = (Boolean) arguments.get(NOTIFY_ON_ENTRY);
+        notificationDetails.notifyOnExit = (Boolean) arguments.get(NOTIFY_ON_EXIT);
         if(arguments.containsKey(SCHEDULED_NOTIFICATION_REPEAT_FREQUENCY)) {
             notificationDetails.scheduledNotificationRepeatFrequency = ScheduledNotificationRepeatFrequency.values()[(Integer) arguments.get(SCHEDULED_NOTIFICATION_REPEAT_FREQUENCY)];
         }
@@ -237,7 +273,7 @@ public class NotificationDetails {
             notificationDetails.visibility = (Integer) platformChannelSpecifics.get(VISIBILITY);
             notificationDetails.allowWhileIdle = (Boolean) platformChannelSpecifics.get(ALLOW_WHILE_IDLE);
             notificationDetails.timeoutAfter = parseLong(platformChannelSpecifics.get(TIMEOUT_AFTER));
-            notificationDetails.category = (String) platformChannelSpecifics.get(CATEGORY);
+            // notificationDetails.category = (String) platformChannelSpecifics.get(CATEGORY);
             notificationDetails.fullScreenIntent = (Boolean) platformChannelSpecifics.get((FULL_SCREEN_INTENT));
             notificationDetails.shortcutId = (String) platformChannelSpecifics.get(SHORTCUT_ID);
             notificationDetails.additionalFlags = (int[]) platformChannelSpecifics.get(ADDITIONAL_FLAGS);

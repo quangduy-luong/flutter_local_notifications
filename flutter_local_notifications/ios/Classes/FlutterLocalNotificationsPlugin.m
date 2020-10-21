@@ -1,4 +1,6 @@
 #import "FlutterLocalNotificationsPlugin.h"
+#import "NSArrayMap.h"
+#import "Utils.h"
 
 @implementation FlutterLocalNotificationsPlugin{
     FlutterMethodChannel* _channel;
@@ -71,6 +73,22 @@ NSString *const NOTIFICATION_ID = @"NotificationId";
 NSString *const PAYLOAD = @"payload";
 NSString *const NOTIFICATION_LAUNCHED_APP = @"notificationLaunchedApp";
 
+NSString *const SHOW_AT_LOCATION_METHOD = @"showAtLocation";
+NSString *const CATEGORIES = @"categories";
+NSString *const CATEGORY_IDENTIFIER = @"category";
+NSString *const NO_ACTIONS_CATEGORY = @"no_actions";
+NSString *const FIRST_ACTION_TITLE = @"firstActionTitle";
+NSString *const SECOND_ACTION_TITLE = @"secondActionTitle";
+NSString *const THIRD_ACTION_TITLE = @"thirdActionTitle";
+NSString *const FIRST_ACTION_PAYLOAD = @"firstActionPayload";
+NSString *const SECOND_ACTION_PAYLOAD = @"secondActionPayload";
+NSString *const THIRD_ACTION_PAYLOAD = @"thirdActionPayload";
+NSString *const LATITUDE = @"latitude";
+NSString *const LONGITUDE = @"longitude";
+NSString *const RADIUS = @"radius";
+NSString *const NOTIFY_ON_ENTRY = @"notifyOnEntry";
+NSString *const NOTIFY_ON_EXIT = @"notifyOnExit";
+NSString *const REMIND_AT_LOCATION = @"remindAtLocation";
 
 typedef NS_ENUM(NSInteger, RepeatInterval) {
     EveryMinute,
@@ -103,6 +121,7 @@ static FlutterError *getFlutterError(NSError *error) {
     FlutterLocalNotificationsPlugin* instance = [[FlutterLocalNotificationsPlugin alloc] initWithChannel:channel registrar:registrar];
     [registrar addApplicationDelegate:instance];
     [registrar addMethodCallDelegate:instance channel:channel];
+    instance->locationManager = [CLLocationManager new];
 }
 
 - (instancetype)initWithChannel:(FlutterMethodChannel *)channel registrar:(NSObject<FlutterPluginRegistrar> *)registrar {

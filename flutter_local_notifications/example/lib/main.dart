@@ -80,13 +80,45 @@ Future<void> main() async {
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
       macOS: initializationSettingsMacOS);
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-      onSelectNotification: (String payload) async {
-    if (payload != null) {
-      debugPrint('notification payload: $payload');
-    }
-    selectNotificationSubject.add(payload);
-  });
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onSelectNotification: (String payload) async {
+      if (payload != null) {
+        debugPrint('notification payload: $payload');
+      }
+      selectNotificationSubject.add(payload);
+    },
+    categories: [
+      NotificationCategory.custom(
+        identifier: 'snoozeable',
+        title: 'Snoozeable',
+        firstActionTitle: 'Snooze 10s',
+        secondActionTitle: 'Snooze 20s',
+        thirdActionTitle: 'Snooze 30s',
+        firstActionPayload: '10',
+        secondActionPayload: '20',
+        thirdActionPayload: '30',
+      ),
+      NotificationCategory.custom(
+        identifier: 'snoozeable_custom',
+        title: 'Snoozeable Custom',
+        firstActionTitle: 'Home',
+        firstActionPayload: '/home',
+        secondActionTitle: 'Snooze 10s',
+        secondActionPayload: '10',
+      ),
+      NotificationCategory.custom(
+        identifier: 'location',
+        title: 'Location',
+        firstActionTitle: 'Remind me next time',
+        firstActionPayload: 'remindAtLocation',
+        secondActionTitle: 'Snooze 10s',
+        secondActionPayload: '10',
+        thirdActionTitle: 'Don\'t show again',
+        thirdActionPayload: '/settings',
+      ),
+    ],
+  );
   runApp(
     MaterialApp(
       home: HomePage(
@@ -266,6 +298,25 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
+                    PaddedRaisedButton(
+                      buttonText: 'Schedule a location at 50.2390, 12.8414',
+                      onPressed: () async {
+                        await _showLocationNotification(50.2390, 12.8414);
+                      },
+                    ),
+                    PaddedRaisedButton(
+                      buttonText:
+                          'Show a custom snoozeable notification with actions',
+                      onPressed: () async {
+                        await _showCustomSnoozeNotification();
+                      },
+                    ),
+                    PaddedRaisedButton(
+                      buttonText: 'Show a snoozeable notification with actions',
+                      onPressed: () async {
+                        await _showDefaultSnoozeNotification();
+                      },
+                    ),
                     PaddedRaisedButton(
                       buttonText: 'Show plain notification with payload',
                       onPressed: () async {
@@ -547,6 +598,69 @@ class _HomePageState extends State<HomePage> {
     await flutterLocalNotificationsPlugin.show(
         0, 'plain title', 'plain body', platformChannelSpecifics,
         payload: 'item x');
+  }
+
+  Future<void> _showLocationNotification(double lat, double lng) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+            'your channel id', 'your channel name', 'your channel description',
+            importance: Importance.max,
+            priority: Priority.high,
+            ticker: 'ticker');
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.showAtLocations(
+      <LocationNotificationInfo>[
+        LocationNotificationInfo(
+          id: 20,
+          title: 'Testing location',
+          body: '$lat, $lng',
+          latitude: lat,
+          longitude: lng,
+          payload: 'location payload',
+        )
+      ],
+      notificationDetails: platformChannelSpecifics,
+      categoryIdentifier: 'location',
+    );
+  }
+
+  Future<void> _showDefaultSnoozeNotification() async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+            'your channel id', 'your channel name', 'your channel description',
+            importance: Importance.max,
+            priority: Priority.high,
+            ticker: 'ticker');
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'plain title',
+      'plain body',
+      platformChannelSpecifics,
+      payload: 'item x',
+      categoryIdentifier: 'snoozeable',
+    );
+  }
+
+  Future<void> _showCustomSnoozeNotification() async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+            'your channel id', 'your channel name', 'your channel description',
+            importance: Importance.max,
+            priority: Priority.high,
+            ticker: 'ticker');
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'plain title',
+      'plain body',
+      platformChannelSpecifics,
+      payload: 'item x',
+      categoryIdentifier: 'snoozeable_custom',
+    );
   }
 
   Future<void> _showFullScreenNotification() async {
