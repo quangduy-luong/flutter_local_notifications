@@ -883,15 +883,6 @@ public class FlutterLocalNotificationsPlugin implements MethodCallHandler, Plugi
 
     @SuppressWarnings("unchecked")
     private void initialize(MethodCall call, Result result) {
-        String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION};
-
-        for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(registrar.context(), permission) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(registrar.activity(), new String[] {permission}, 25);
-            }
-        }
-
-
         Map<String, Object> arguments = call.arguments();
         String defaultIcon = (String) arguments.get(DEFAULT_ICON);
         ArrayList<HashMap<String, Object>> cat = (ArrayList<HashMap<String, Object>>) arguments.get(CATEGORIES);
